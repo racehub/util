@@ -1,4 +1,4 @@
-(defproject paddleguru/util "0.1.0"
+(defproject paddleguru/util "0.1.1"
   :description "Utility functions from PaddleGuru."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -14,6 +14,7 @@
   :hooks [cljx.hooks]
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
   :source-paths ["src/clj" "target/generated/clj"]
+  :resource-paths ["target/generated/cljs"]
   :profiles {:dev {:injections [(require 'schema.core)
                                 (schema.core/set-fn-validation! true)]
                    :dependencies [[org.clojure/test.check "0.5.7"]

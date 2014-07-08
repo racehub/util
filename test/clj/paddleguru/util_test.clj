@@ -17,6 +17,10 @@
   (is (= 600 (currency-str->pennies "6.00"))
       "Dollar sign doesn't need to be present."))
 
+(deftest pennies->currency-test
+  (is (= "$12.04" (pennies->currency 1204)))
+  (is (= "-$12.37" (pennies->currency -1237))))
+
 (deftest merge-with-map-test
   (fact
     "merge-with-map: If the supplied function map has a function to

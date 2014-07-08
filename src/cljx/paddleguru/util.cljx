@@ -311,7 +311,10 @@ fraction. Negative numbers return false."
     "converts the incoming pennies into a currency string with a
     dollar sign prefix on the front."
     [pennies :- (s/maybe s/Int)]
-    (to-currency (pennies->double pennies)))
+    (when pennies
+      (if (neg? pennies)
+        (str "-" (to-currency (pennies->double (- pennies))))
+        (to-currency (pennies->double pennies)))))
 
   (sm/defn pennies->currency-str :- (s/maybe s/Str)
     "converts the incoming pennies into a currency string WITHOUT a

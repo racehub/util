@@ -20,7 +20,8 @@
                    :dependencies [[org.clojure/test.check "0.5.7"]
                                   [midje "1.6.3"]]
                    :test-paths ["test/clj"]
-                   :plugins [[com.keminglabs/cljx "0.4.0"]]}}
+                   :plugins [[com.keminglabs/cljx "0.4.0"]
+                             [paddleguru/lein-gitflow "0.1.2"]]}}
   :cljx {:builds [{:source-paths ["src/cljx"]
                    :output-path "target/generated/clj"
                    :rules :clj}

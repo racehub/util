@@ -1,4 +1,4 @@
-(defproject paddleguru/util "0.1.2"
+(defproject paddleguru/util "0.1.3-SNAPSHOT"
   :description "Utility functions from PaddleGuru."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

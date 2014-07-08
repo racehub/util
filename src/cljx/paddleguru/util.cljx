@@ -299,35 +299,35 @@ fraction. Negative numbers return false."
     s
     (currency-amt (zero-or-positive (str-to-double s)))))
 
-#+clj
-(do
-  (sm/defn pennies->double :- (s/maybe s/Num)
+(sm/defn pennies->double :- (s/maybe s/Num)
     "converts the incoming pennies into a double."
     [pennies :- (s/maybe s/Int)]
     (when pennies
       (/ (float pennies) 100.0)))
 
-  (sm/defn pennies->currency :- (s/maybe s/Str)
-    "converts the incoming pennies into a currency string with a
+(sm/defn pennies->currency :- (s/maybe s/Str)
+  "converts the incoming pennies into a currency string with a
     dollar sign prefix on the front."
-    [pennies :- (s/maybe s/Int)]
-    (when pennies
-      (if (neg? pennies)
-        (str "-" (to-currency (pennies->double (- pennies))))
-        (to-currency (pennies->double pennies)))))
+  [pennies :- (s/maybe s/Int)]
+  (when pennies
+    (if (neg? pennies)
+      (str "-" (to-currency (pennies->double (- pennies))))
+      (to-currency (pennies->double pennies)))))
 
-  (sm/defn pennies->currency-str :- (s/maybe s/Str)
-    "converts the incoming pennies into a currency string WITHOUT a
+(sm/defn pennies->currency-str :- (s/maybe s/Str)
+  "converts the incoming pennies into a currency string WITHOUT a
      dollar sign prefix on the front."
-    [pennies :- (s/maybe s/Int)]
-    (currency-amt (pennies->double pennies)))
+  [pennies :- (s/maybe s/Int)]
+  (currency-amt (pennies->double pennies)))
 
-  (sm/defn double->pennies :- s/Int
-    "Converts the incoming dollar amount (represented by a double)
+(sm/defn double->pennies :- s/Int
+  "Converts the incoming dollar amount (represented by a double)
     into pennies."
-    [i :- s/Num]
-    (Math/round (* i 100.0)))
+  [i :- s/Num]
+  (Math/round (* i 100.0)))
 
+#+clj
+(do
   (sm/defn squash :- {s/Str s/Any}
     "Squashes a map nested to a single level into a Stripe API
   compatible form (with the brackets)"

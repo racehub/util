@@ -179,7 +179,7 @@ items)]"
 (sm/defn ^:export clear-specials :- (s/maybe s/Str)
   [s :- (s/maybe s/Str)]
   (when s
-    (st/replace s #"[^(a-zA-Z0-9)]+" "")))
+    (st/replace s #"[^a-zA-Z0-9]+" "")))
 
 (defn ^:export remove-spaces [input]
   (when input

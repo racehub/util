@@ -151,6 +151,18 @@
   (is (= "0.00" (clean-currency "12d23"))
       "Letters are invalid currency."))
 
+(deftest clear-specials-test
+  (is (= "RaceHub" (clear-specials "Race Hub"))
+      "Letters are valid")
+  (is (= "123456" (clear-specials "123 456"))
+      "Numbers are valid")
+  (is (= "Race123Hub456" (clear-specials "Race 123 Hub 456"))
+      "Letters/Numbers are valid")
+  (is (= "NoParens") (clear-specials "N((o)) (Parens)"))
+  (is (= "NoSpecialCharacters"
+         (clear-specials "No !@#$ Special %^&* Characters+_)(**&!@#$^#^?<>:"))
+      "No Special Characters."))
+
 (def select-gen
   (gen/one-of [(gen/return nil) gen/int (gen/return {}) (gen/return []) (gen/return #{})
                (gen/vector gen/int)]))

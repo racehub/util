@@ -375,7 +375,7 @@ fraction. Negative numbers return false."
   ;; Clojure-only bullshit.
   (defn collectify [obj]
     (cond (nil? obj) []
-          (or (sequential? obj) (instance? List obj)) obj
+          (or (sequential? obj) (instance? List obj) (set? obj)) obj
           :else [obj]))
 
   (defn ensure-defaults [m & k-default-pairs]

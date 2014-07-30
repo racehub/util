@@ -1,4 +1,4 @@
-(defproject racehub/util "0.1.6-SNAPSHOT"
+(defproject racehub/util "0.1.6"
   :description "Utility functions from RaceHub."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

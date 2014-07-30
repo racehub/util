@@ -56,7 +56,7 @@
    [5 5]       [5 5]
    "aaa"       ["aaa"]
    {:a 1 :b 2} [{:a 1 :b 2}]
-   #{1 2 3}    [#{1 2 3}]))
+   #{1 2 3}    #{1 2 3}))
 
 (deftest ensure-defaults-test
   (is (= {:genders ["All"]} (ensure-defaults {:genders []} :genders ["All"]))

@@ -1,0 +1,12 @@
+language: clojure
+lein: lein2
+script: lein2 test
+branches:
+  only:
+  - develop
+  - master
+jdk:
+- openjdk7
+notifications:
+  slack:
+    secure: J0m+9Jp+m4JYa+/uWadbag1IYAPWrqe6S97OlZ15G2sx2U85eJxum0mSgMapLZLR3b7u8xKkXUSkKlQkgzK/lwUWchF29G5bshX68f8f12ouDUSDHf8MO9W2SdJFaDXd65hqMFCAtXC4ATvs32wQwkB53ntcub+3T1W6unUntPM=

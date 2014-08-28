@@ -191,3 +191,16 @@
    {:hi-foo 1}   {:hi-foo 1}
    {:mo_fo-bo 1} {:mo-fo-bo 1}
    {:foo_bar 1 :hi 2 :bar_foo_moo 3}    {:foo-bar 1 :hi 2 :bar-foo-moo 3}))
+
+(deftest build-kw-map-test
+  (let [a "Hi"
+        b 23
+        c ["A" 43]
+        d {:foo "bar" :big {:dawg "33"}}
+        e #{:hi :there}
+        f :yomama]
+    (is (= (build-kw-map a) {:a "Hi"}))
+    (is (= (build-kw-map b) {:b 23}))
+    (is (= (build-kw-map d) {:d {:foo "bar" :big {:dawg "33"}}}))
+    (is (= (build-kw-map b f) {:b 23 :f :yomama}))
+    (is (= (build-kw-map a b c e) {:a "Hi" :b 23 :c ["A" 43] :e #{:hi :there}}))))

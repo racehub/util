@@ -42,6 +42,10 @@
 (defn map-by [key-func val-func coll]
   (into {} (map (juxt key-func val-func) coll)))
 
+(defmacro build-kw-map
+  [& c]
+  (into {} (map #(vector (keyword %) %) c)))
+
 (defn between
   "returns a predicate that checks that the supplied number falls
   between the inclusive lower and exclusive upper bounds supplied."

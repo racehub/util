@@ -1,5 +1,6 @@
 (ns paddleguru.util
   (:require [clojure.string :as st]
+            #+cljs [cljs.reader]
             #+cljs [cljs.core.async :refer [chan]]
             #+clj [clojure.core.async :refer [chan]]
             [schema.core :as s]

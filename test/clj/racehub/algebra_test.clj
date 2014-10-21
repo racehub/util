@@ -1,7 +1,7 @@
-(ns paddleguru.algebra-test
+(ns racehub.algebra-test
   (:refer-clojure :exclude [associative?])
   (:require [clojure.test :refer :all]
-            [paddleguru.algebra :as a]
+            [racehub.algebra :as a]
             [clojure.test.check :as sc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop :refer (for-all)]))
@@ -23,7 +23,7 @@
 
 (defn semigroup-law
   "Tests that the supplied generator produces values that can add
-  together with paddleguru.algebra/plus."
+  together with racehub.algebra/plus."
   [type-name generator]
   (testing (str type-name " forms a semigroup.")
     (test-property

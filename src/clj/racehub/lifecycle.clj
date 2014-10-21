@@ -1,6 +1,5 @@
-(ns paddleguru.lifecycle
-  "Functions for controlling the lifecycle of the Paddleguru
-  application.")
+(ns racehub.lifecycle
+  "Functions for controlling the lifecycle of an application.")
 
 (defprotocol LifeCycle
   (start! [this prev]

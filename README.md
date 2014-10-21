@@ -1,6 +1,6 @@
 # RaceHub Util [![Build Status](https://secure.travis-ci.org/racehub/util.png)](http://travis-ci.org/racehub/util)
 
-General utilities used by the RaceHub team... I guess every team has to have one of these, whatever the size.
+General utilities used by the RaceHub team.
 
 ## Usage
 

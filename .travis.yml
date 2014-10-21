@@ -10,3 +10,8 @@ jdk:
 notifications:
   slack:
     secure: J0m+9Jp+m4JYa+/uWadbag1IYAPWrqe6S97OlZ15G2sx2U85eJxum0mSgMapLZLR3b7u8xKkXUSkKlQkgzK/lwUWchF29G5bshX68f8f12ouDUSDHf8MO9W2SdJFaDXd65hqMFCAtXC4ATvs32wQwkB53ntcub+3T1W6unUntPM=
+env:
+  global:
+  - secure: MKIaF0ODeaURtXhpsOxp1E1tow5ZE8wtUtX67YtEZiwzjFBkARuE5ASAwjtQEqowIpoG4Myc3n5SzBPLFRJIuoFb7DQNYgEHN6WFcmNpHXpNcOIrlYbhpx15gpL9WaJSTE5Pz69QoqrE6X3GEu6d+/8wXD2LpdyP+Jj7OmaRAF4=
+  - secure: UPm8LqNM99/WDE6Rikb23v+QbjZxhy7RbbosSy6MrjUyardk9x2vPZd7nbSO89KH0LcXIQKshbmKINH9r9yDsb2D5TOgxMUDWTy0Y+xKhdwWxih4Z+IS9JnoVQZJvcA+0Q1kFUqLu2OwtpIt2qj09HDygZHyIPpPJnORsJ/+8qU=
+  - secure: EyEkRLpy5Ok+MDF1l+2fGrkpsgSNI+OhGSq41uQXajIMT6/7TKVC7lXHe2MgekHfbhrQuiSJ4QT2a+SP0/P503VJ5xUQBwX/GIuHoa6YLatwX4WqxoHSC/aG8OG7c9lhqkEPyadpSafzzgAR+NQ8Kc77iCXh1SXDrwP1u+iHxls=

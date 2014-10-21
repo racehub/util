@@ -1,16 +1,32 @@
-(defproject racehub/util "0.1.8"
+(defproject racehub/util "0.2.0"
   :description "Utility functions from RaceHub."
-  :url "http://example.com/FIXME"
+  :url "https://github.com.com/racehub/util"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [com.cemerick/url "0.1.1"]
+  :dependencies [[org.clojure/clojure "1.7.0-alpha2"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [com.cemerick/friend "0.2.0"
+                  :exclusions [org.openid4java/openid4java-nodeps
+                               com.google.inject/guice
+                               net.sourceforge.nekohtml/nekohtml
+                               org.apache.httpcomponents/httpclient
+                               org.clojure/core.cache]]
+                 [com.cemerick/url "0.1.1"
+                  :exclusions [com.cemerick/clojurescript.test]]
                  [com.googlecode.libphonenumber/libphonenumber "5.0"]
-                 [commons-validator/commons-validator "1.4.0"]
-                 [enlive "1.1.4"]
-                 [potemkin "0.3.4"]
-                 [prismatic/schema "0.2.2"]]
+                 [com.novemberain/validateur "2.3.1"]
+                 [com.taoensso/timbre "3.2.1"]
+                 [paddleguru/forms-bootstrap "0.9.1" :exclusions [ring/ring]]
+                 [prismatic/schema "0.3.0"]
+                 [cheshire "5.3.1"]
+                 [clj-stacktrace "0.2.8"]
+                 [clj-time "0.7.0"]
+                 [crypto-random "1.2.0"]
+                 [environ "0.5.0"]
+                 [http-kit "2.1.19"]
+                 [liberator "0.10.0"]
+                 [lock-key "1.0.0"]
+                 [lib-noir "0.8.4" :exclusions [ring/ring]]]
   :hooks [cljx.hooks]
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
   :source-paths ["src/clj" "target/generated/clj"]
@@ -18,9 +34,11 @@
   :profiles {:dev {:injections [(require 'schema.core)
                                 (schema.core/set-fn-validation! true)]
                    :dependencies [[org.clojure/test.check "0.5.7"]
-                                  [midje "1.6.3"]]
+                                  [midje "1.6.3"]
+                                  [ring-mock "0.1.5"]]
                    :test-paths ["test/clj"]
-                   :plugins [[com.keminglabs/cljx "0.4.0"]
+                   :plugins [[com.keminglabs/cljx "0.4.0"
+                              :exclusions [org.clojure/clojure]]
                              [paddleguru/lein-gitflow "0.1.2"]]}}
   :cljx {:builds [{:source-paths ["src/cljx"]
                    :output-path "target/generated/clj"

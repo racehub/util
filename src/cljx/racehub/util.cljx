@@ -1,23 +1,18 @@
-(ns paddleguru.util
+(ns racehub.util
   (:require [clojure.string :as st]
             #+cljs [cljs.reader]
             #+cljs [cljs.core.async :refer [chan]]
             #+clj [clojure.core.async :refer [chan]]
-            [schema.core :as s]
-            #+clj [schema.macros :as sm]
+            [schema.core :as s :include-macros true]
             #+clj [cemerick.url :as url]
-            #+clj [net.cgrand.enlive-html :as html]
-            #+clj [potemkin :refer [import-vars]]
             #+cljs goog.debug
             #+cljs [goog.string :as gstring]
             #+cljs [goog.string.format :as gformat])
-  #+cljs (:require-macros [schema.macros :as sm])
   #+clj (:import [java.net URI]
                  [com.google.i18n.phonenumbers NumberParseException PhoneNumberUtil]
                  [clojure.lang ArraySeq Symbol]
                  [java.util List UUID]
-                 [java.security SecureRandom]
-                 [org.apache.commons.validator EmailValidator]))
+                 [java.security SecureRandom]))
 
 (defn with-chan [f]
   (let [output (chan)]
@@ -31,7 +26,7 @@
   [s]
   (st/replace s #"(:|\.|\[|\])" ""))
 
-(sm/defn lowercase= :- s/Bool
+(s/defn lowercase= :- s/Bool
   "returns true if the strings are equal without case sensitivity,
   false otherwise."
   [a :- s/Str b :- s/Str]
@@ -90,11 +85,6 @@
 
 (def Named
   (s/either s/Str s/Keyword))
-
-(def Squashable
-  "This is sort of a silly type, since the second condition matches
-  anything. Mostly here for docs, since you might squash a map."
-  {Named (s/either {Named s/Any} s/Any)})
 
 (defn map-values
   "Maps the keyspace using the supplied function. Any duplicate keys
@@ -175,13 +165,13 @@ items)]"
   "Takes two numbers and returns a 2-vector of [quotient, remainder]"
   (juxt quot mod))
 
-(sm/defn truncate-string :- s/Str
+(s/defn truncate-string :- s/Str
   [s :- s/Str len :- s/Int]
   (if (> (count s) len)
     (str (apply str (take (- len 3) s)) "...")
     s))
 
-(sm/defn ^:export clear-specials :- (s/maybe s/Str)
+(s/defn ^:export clear-specials :- (s/maybe s/Str)
   [s :- (s/maybe s/Str)]
   (when s
     (st/replace s #"[^a-zA-Z0-9]+" "")))
@@ -195,14 +185,14 @@ items)]"
   (when input
     (st/lower-case input)))
 
-(sm/defn number-string? :- s/Bool
+(s/defn number-string? :- s/Bool
   "Checks to make sure that the given string contains only numbers,
   '.', or ','. The string may start with a '-'."
   [s :- (s/maybe s/Str)]
   (boolean (when s
              (re-matches #"-?[0-9.,]+" s))))
 
-(sm/defn ^:export str-to-int :- s/Int
+(s/defn ^:export str-to-int :- s/Int
   "converts string to ints, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
   #+cljs (if (js/isNaN s)
@@ -213,7 +203,7 @@ items)]"
           (try (Integer/parseInt s)
                (catch Exception e 0))))
 
-(sm/defn ^:export str-to-float :- s/Num
+(s/defn ^:export str-to-float :- s/Num
   "converts string to float, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
   #+cljs (if (js/isNaN s)
@@ -226,7 +216,7 @@ items)]"
                  (catch Exception e 0.0))
             0.0)))
 
-(sm/defn ^:export str-to-double :- s/Num
+(s/defn ^:export str-to-double :- s/Num
   "converts string to doubles, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
   #+cljs (if (js/isNaN s)
@@ -270,7 +260,7 @@ items)]"
 (def max-time
   (time-to-ms "99:59:59.99"))
 
-(sm/defn ^:export currency-amt :- s/Str
+(s/defn ^:export currency-amt :- s/Str
   [n :- (s/maybe (s/either s/Str s/Num))]
   (let [num (str-to-double n)
         nocommas (#+clj format #+cljs gstring/format "%.2f" num)
@@ -278,11 +268,11 @@ items)]"
         whole-num-str (pretty-int (first whole-decimal-vec))]
     (str whole-num-str "." (second whole-decimal-vec))))
 
-(sm/defn ^:export to-currency :- s/Str
+(s/defn ^:export to-currency :- s/Str
   [n :- (s/maybe (s/either s/Str s/Num))]
   (str "$" (currency-amt n)))
 
-(sm/defn ^:export valid-currency-amt? :- s/Bool
+(s/defn ^:export valid-currency-amt? :- s/Bool
   "Returns true if the given string is a valid currency amount (cents
 mandatory). Optional thousands separators; mandatory two-digit
 fraction. Negative numbers return false."
@@ -290,11 +280,11 @@ fraction. Negative numbers return false."
   (boolean (when s
              (re-find #"^[0-9]{1,3}(?:,?[0-9]{3})*\.[0-9]{2}$" s))))
 
-(sm/defn ^:export zero-or-positive :- s/Num
+(s/defn ^:export zero-or-positive :- s/Num
   [total :- (s/maybe s/Num)]
   (max 0 (or total 0)))
 
-(sm/defn ^:export clean-currency :- s/Str
+(s/defn ^:export clean-currency :- s/Str
   "Returns a 'cleaned' version of the given input currency. Useful for
   validating form fields where the user has to enter a dollar
   amount. Truncates to two decimal points. Negative amounts not
@@ -304,13 +294,13 @@ fraction. Negative numbers return false."
     s
     (currency-amt (zero-or-positive (str-to-double s)))))
 
-(sm/defn pennies->double :- (s/maybe s/Num)
+(s/defn pennies->double :- (s/maybe s/Num)
     "converts the incoming pennies into a double."
     [pennies :- (s/maybe s/Int)]
     (when pennies
       (/ (float pennies) 100.0)))
 
-(sm/defn pennies->currency :- (s/maybe s/Str)
+(s/defn pennies->currency :- (s/maybe s/Str)
   "converts the incoming pennies into a currency string with a
     dollar sign prefix on the front."
   [pennies :- (s/maybe s/Int)]
@@ -319,13 +309,13 @@ fraction. Negative numbers return false."
       (str "-" (to-currency (pennies->double (- pennies))))
       (to-currency (pennies->double pennies)))))
 
-(sm/defn pennies->currency-str :- (s/maybe s/Str)
+(s/defn pennies->currency-str :- (s/maybe s/Str)
   "converts the incoming pennies into a currency string WITHOUT a
      dollar sign prefix on the front."
   [pennies :- (s/maybe s/Int)]
   (currency-amt (pennies->double pennies)))
 
-(sm/defn double->pennies :- s/Int
+(s/defn double->pennies :- s/Int
   "Converts the incoming dollar amount (represented by a double)
     into pennies."
   [i :- s/Num]
@@ -333,29 +323,11 @@ fraction. Negative numbers return false."
 
 #+clj
 (do
-  (sm/defn squash :- {s/Str s/Any}
-    "Squashes a map nested to a single level into a Stripe API
-  compatible form (with the brackets)"
-    [m :- Squashable]
-    (->> (for [[k v] m :let [k (name k)]]
-           (if (map? v)
-             (mapk #(format "%s[%s]" k (name %)) v)
-             {k v}))
-         (reduce into {})))
-
-  (sm/defn uuid :- s/Str
+  (s/defn uuid :- s/Str
     []
     (str (UUID/randomUUID)))
 
-  (defmacro clone-ns
-    "Accepts a namespace symbol and clones all vars from that namespace
-    into this namespace, allowing users to use them without hassle."
-    [sym]
-    (require sym)
-    (let [publics (cons sym (keys (ns-publics sym)))]
-      `(import-vars ~publics)))
-
-  (sm/defn ->int :- (s/maybe s/Int)
+  (s/defn ->int :- (s/maybe s/Int)
     [i :- s/Str]
     (try (Integer/parseInt i)
          (catch Exception _)))
@@ -370,12 +342,6 @@ fraction. Negative numbers return false."
              (.parse phone "US")
              .getNationalNumber)
          (catch NumberParseException _)))
-  ;;http://commons.apache.org/validator/apidocs/org/apache/commons/validator/routines/EmailValidator.html
-  (s/defn email-valid? :- s/Bool
-    "Returns true if the given email address is valid, with no spaces."
-    [email :- s/Str]
-    (and (.isValid (EmailValidator/getInstance) email)
-         (nil? (re-seq #"[\s]" email))))
 
   ;; Clojure-only bullshit.
   (defn collectify [obj]
@@ -417,43 +383,22 @@ fraction. Negative numbers return false."
         (boolean (try (Integer/parseInt n)
                       (catch Exception e nil)))))
 
-  (defn parse-html-str
-    "Takes in a string of html (like from an embedded html editor) and
-  converts it into enlive nodes (suitable for use in an Enlive
-  snippet)"
-    [s]
-    (html/html-snippet s))
-
-  (defn nodes-to-html
-    [n]
-    (apply str (html/emit* n)))
-
-  (defmacro maybe-substitute
-    ([expr] `(if-let [x# ~expr]
-               (html/substitute x#)
-               identity))
-    ([expr & exprs] `(maybe-substitute (or ~expr ~@exprs))))
-
-  (defmacro maybe-content
-    ([expr] `(if-let [x# ~expr] (html/content x#) identity))
-    ([expr & exprs] `(maybe-content (or ~expr ~@exprs))))
-
-  (sm/defn encode :- s/Str
+  (s/defn encode :- s/Str
     "Encodes the string in UTF-8 url format"
     [s :- s/Str]
     (url/url-encode s))
 
-  (sm/defn decode :- s/Str
+  (s/defn decode :- s/Str
     "Decodes the string in UTF-8 url format"
     [s :- s/Str]
     (url/url-decode s))
 
-  (sm/defn remove-leading-zeroes :- s/Str
+  (s/defn remove-leading-zeroes :- s/Str
     "Removes all leading zeroes. If the string contains only zeroes, returns 0."
     [s :- s/Str]
     (.replaceFirst s "^0+(?!$)" ""))
 
-  (sm/defn capitalize-first-only :- s/Str
+  (s/defn capitalize-first-only :- s/Str
     "Like string/capitalize but doesnt force the rest of the string to
   lower case. Useful in cases like hyphenated last names so we dont
   force to second part to lowercase."
@@ -461,14 +406,14 @@ fraction. Negative numbers return false."
     (str (.toUpperCase (subs s 0 1))
          (subs s 1 )))
 
-  (sm/defn currency-str->pennies :- (s/maybe s/Int)
+  (s/defn currency-str->pennies :- (s/maybe s/Int)
     [price :- (s/maybe s/Str)]
     (when price
       (-> (st/replace price #"\$" "")
           (str-to-double)
           (double->pennies))))
 
-  (sm/defn hexadecimalize :- s/Str
+  (s/defn hexadecimalize :- s/Str
     "Converts byte array to hex string"
     [a-byte-array]
     (->> (map #(format "%02X" %) a-byte-array)
@@ -499,7 +444,7 @@ fraction. Negative numbers return false."
   (defn log [& strings]
     (.log js/console (apply str strings)))
 
-  (sm/defn read :- (s/maybe s/Any)
+  (s/defn read :- (s/maybe s/Any)
     [s :- (s/maybe s/Str)]
     (when (not-empty s)
       (cljs.reader/read-string s)))

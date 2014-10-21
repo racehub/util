@@ -1,4 +1,4 @@
-(ns paddleguru.algebra
+(ns racehub.algebra
   "Shared algebras for cljs and clj.")
 
 (defprotocol Semigroup

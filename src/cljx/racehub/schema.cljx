@@ -1,9 +1,7 @@
-(ns paddleguru.schema
+(ns racehub.schema
   "Common schema elements."
-  (:require [schema.core :as s]
-            [paddleguru.util :as u]
-            #+clj [potemkin :refer [import-vars]])
-  (#+clj :require #+cljs :require-macros [schema.macros :as sm])
+  (:require [racehub.util :as u]
+            [schema.core :as s :include-macros true])
   #+clj (:import [clojure.core.async.impl.protocols ReadPort]))
 
 (def Channel
@@ -20,34 +18,34 @@
 (def EnliveNode
   {s/Keyword s/Any})
 
-(sm/defschema Function
-  (sm/=> s/Any s/Any))
+(s/defschema Function
+  (s/=> s/Any s/Any))
 
-(sm/defschema Percent
+(s/defschema Percent
   (s/both s/Int (s/pred (u/between 1 101))))
 
-(sm/defschema PositiveInt
+(s/defschema PositiveInt
   (s/both s/Int (s/pred pos?)))
 
-(sm/defschema PositiveNumber
+(s/defschema PositiveNumber
   (s/both s/Num (s/pred pos?)))
 
 (defn non-negative [schema]
   (s/both schema (s/pred (complement neg?))))
 
-(sm/defschema NonNegativeInt
+(s/defschema NonNegativeInt
   (non-negative s/Int))
 
-(sm/defschema NonNegativeNumber
+(s/defschema NonNegativeNumber
   (non-negative s/Num))
 
 (def Currency NonNegativeInt)
 
-(sm/defschema Millis
+(s/defschema Millis
   "non-negative integer representing milliseconds."
   NonNegativeInt)
 
-(sm/defn percent-str :- s/Str
+(s/defn percent-str :- s/Str
   [percent :- Percent]
   (str percent "%"))
 
@@ -58,7 +56,7 @@
 (defn sorted [schema]
   (s/both schema sorted-coll?))
 
-(sm/defn toggle-optional :- {s/Any s/Any}
+(s/defn toggle-optional :- {s/Any s/Any}
   "Takes in a Schema, and a keyword to toggle."
   [schema :- {s/Any s/Any}
    k :- (s/named s/Any "Key to toggle")]

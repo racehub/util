@@ -1,6 +1,6 @@
-(ns paddleguru.util-test
+(ns racehub.util-test
   (:use midje.sweet
-        paddleguru.util)
+        racehub.util)
   (:require [clojure.test :refer [is deftest]]
             [clojure.test.check :as sc]
             [clojure.test.check.generators :as gen]
@@ -35,17 +35,6 @@
 (deftest mapk-test
   (is (= {1 1 4 2 9 3} (mapk #(* % %) {1 1 2 2 3 3}))
       "mapk maps across keys and returns another map."))
-
-(deftest squash-testing
-  (is (= {"metadata[y]" "y!"
-          "metadata[x]" "x!"
-          "card[cvc]" "12"
-          "cake" "face"}
-         (squash {:metadata {:x "x!"
-                             :y "y!"}
-                  :card {"cvc" "12"}
-                  :cake "face"})))
-  (is (= {} (squash {}))))
 
 ;; Test of the create, update, delete cycle for customers.
 (deftest collectify-test

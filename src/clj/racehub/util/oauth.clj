@@ -27,7 +27,8 @@
    :token-url s/Str
    :client-id s/Str
    :client-secret s/Str
-   (s/optional-key :auth-query) {s/Keyword s/Str}})
+   (s/optional-key :auth-query) {s/Keyword s/Str}
+   (s/optional-key :callback) CallBack})
 
 (s/defschema URIConfig
   {:token-location TokenLocation
@@ -142,9 +143,9 @@
         response (ring/transfer-session (response/redirect uri) request)]
     (update response :session dissoc ::redirect-uri)))
 
-(defn redirect-to-provider!
+(s/defn redirect-to-provider!
   "Redirects user to OAuth2 provider. Code should be in response."
-  [uri-config request]
+  [uri-config :- URIConfig request]
   (let [anti-forgery-token (generate-anti-forgery-token)
         session-with-af-token (add-anti-forgery (:session request)
                                                 anti-forgery-token)]
@@ -153,6 +154,11 @@
         response/redirect
         (assoc :session session-with-af-token))))
 
+(s/defn original-url :- s/Str
+  [{:keys [scheme server-name headers]}]
+  (let [scheme (name (or (get headers "x-forwarded-proto") scheme))]
+    (str scheme "://" server-name)))
+
 (s/defn oauth-base
   [base :- {s/Keyword s/Any}
    config :- {OAuthProvider OAuthConfig}
@@ -160,15 +166,15 @@
   {:base base
    :exists?
    (fn [{req :request}]
-     (let [domain (:server-name req)]
-       (if-let [config (get-config config domain provider)]
-         {::config config})))})
+     (let [domain (original-url req)]
+       (when-let [uri-config (get-config config domain provider)]
+         {::uri-config uri-config})))})
 
 (l/defresource handshake [base]
   :base base
   :allowed-methods [:get]
   :available-media-types ["text/html"]
-  :handle-ok (fn [{req :request config ::config}]
+  :handle-ok (fn [{req :request config ::uri-config}]
                ;; Switch in here. If they already have a token for the
                ;; provider, check if it's still valid. If so, then
                ;; just say you're already authenticated. Otherwise
@@ -181,7 +187,7 @@
 
 (s/defn request-token
   "POSTs request to OAauth2 provider for authorization token."
-  [config :- OAuthConfig code :- s/Str]
+  [config :- URIConfig code :- s/Str]
   (let [token-location (:token-location config)
         access-token-uri (:access-token-uri config)
         query-map (merge {:grant_type "authorization_code"}
@@ -200,20 +206,19 @@
   :base base
   :allowed-methods [:get]
   :available-media-types ["text/html"]
-  :handle-ok (let [config (get-config provider)]
-               (fn [{req :request}]
-                 (let [{:keys [state code]} (:params req)
-                       session-state (-> req :session get-anti-forgery)
-                       response (l/ring-response
-                                 (redirect-after-auth req "/settings/profile"))]
-                   (if (and code (= state session-state))
-                     (let [access-token (request-token config code)]
-                       (register-fn provider access-token)
-                       response)
-                     ;; Redirect back home and note that an exception
-                     ;; occurred with login. We need to properly
-                     ;; handle the failed auth case.
-                     response)))))
+  :handle-ok (fn [{req :request config ::uri-config}]
+               (let [{:keys [state code]} (:params req)
+                     session-state (-> req :session get-anti-forgery)
+                     response (l/ring-response
+                               (redirect-after-auth req "/settings/profile"))]
+                 (if (and code (= state session-state))
+                   (let [access-token (request-token config code)]
+                     (register-fn provider access-token)
+                     response)
+                   ;; Redirect back home and note that an exception
+                   ;; occurred with login. We need to properly
+                   ;; handle the failed auth case.
+                   response))))
 
 (l/defresource unlink [base provider unregister-fn]
   :base base

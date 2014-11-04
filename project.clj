@@ -1,4 +1,4 @@
-(defproject racehub/util "0.2.1"
+(defproject racehub/util "0.2.2"
   :description "Utility functions from RaceHub."
   :url "https://github.com.com/racehub/util"
   :license {:name "Eclipse Public License"
@@ -26,14 +26,16 @@
                  [http-kit "2.1.19"]
                  [liberator "0.10.0"]
                  [lock-key "1.0.0"]
-                 [lib-noir "0.8.4" :exclusions [ring/ring]]]
+                 [lib-noir "0.8.4" :exclusions [ring/ring]]
+                 [paddleguru/clutch "0.5.0"]]
   :hooks [cljx.hooks]
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
   :source-paths ["src/clj" "target/generated/clj"]
   :resource-paths ["target/generated/cljs"]
   :profiles {:dev {:injections [(require 'schema.core)
                                 (schema.core/set-fn-validation! true)]
-                   :dependencies [[org.clojure/test.check "0.5.7"]
+                   :dependencies [[org.clojure/clojurescript "0.0-2356"]
+                                  [org.clojure/test.check "0.5.7"]
                                   [midje "1.6.3"]
                                   [ring-mock "0.1.5"]]
                    :test-paths ["test/clj"]

@@ -25,14 +25,6 @@
     (is (:ok (c/delete-database url)))
     (is (nil? ((set (c/all-databases url)) name)))))
 
-(defdbtest view-existence-test
-  {:design-docs "regatta"}
-  (is (= "regatta" (:name (db/design-doc-info "regatta")))
-      "The design doc specified in the metadata should be created.")
-
-  (is (nil? (db/design-doc-info "unwritten_doc"))
-      "design-doc-info returns nothing for a missing design doc."))
-
 (defdbtest investigation-test
   "Some basic tests of CouchDB functionality."
   (let [doc       (db/create! {:foo "bar" :type "honey"})
@@ -70,7 +62,7 @@
              (= doc3 (:doc (first nil-types))))
         "get-nil-types returns a seq of documents")
 
-    (let [id-seq ["fuck" (db/get-id doc2) (db/get-id updated)]
+    (let [id-seq ["fark" (db/get-id doc2) (db/get-id updated)]
           zipped (db/zip (comp upper-case :type) id-seq)]
       (is (= {(db/get-id doc2) "BADGER"
               (db/get-id updated) "HONEY"}

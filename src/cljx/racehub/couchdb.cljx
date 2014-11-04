@@ -134,7 +134,7 @@
   (defn couchdb-config
     "Map of CouchDB settings."
     []
-    {:uri (conf/env :couch-url "localhost")
+    {:uri (conf/env :couch-url "http://localhost:5984")
      :database (conf/env :database-name)
      :view-suffix (view-suffix)})
 

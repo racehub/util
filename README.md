@@ -10,6 +10,11 @@ Here's the Leiningen dependency:
 
 You know what to do.
 
+## Authors
+
+- Sam Ritchie <https://twitter.com/sritchie>
+- Dave Petrovics <https://github.com/dpetrovics>
+
 ## License
 
 Copyright © 2014 PaddleGuru LLC.

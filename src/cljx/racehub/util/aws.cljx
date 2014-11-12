@@ -29,10 +29,10 @@
   {"image/pjpeg" "image/jpeg"
    "image/x-png" "image/png"})
 
-(def CrazyInput
+(s/defschema CrazyInput
   (apply s/enum (keys crazy-map)))
 
-(def ImageContent
+(s/defschema ImageContent
   (s/enum "image/jpeg" "image/png" "image/bmp" "image/gif"))
 
 (def AWSKey

@@ -15,104 +15,83 @@
 
 ;; ## Schemas
 
+(s/defschema Document
+  "Guts of a CouchDB document, not meant to include CouchFields."
+  {(s/either s/Keyword s/Str) s/Any})
+
+(def ID
+  (s/named s/Str "ID of the CouchDoc"))
+
 (s/defschema Stub
   "CouchDB attachment stub."
   {s/Any s/Any})
 
-(def ID s/Str)
-
-(s/defn id [schema-name :- s/Str]
-  s/Str)
-
-(def CouchFields
+(s/defschema CouchFields
+  "Fields that we include in every CouchDB Document."
   {:_id ID
    :_rev s/Str
    (s/optional-key :created-at) ps/Timestamp
    (s/optional-key :updated-at) ps/Timestamp
-   (s/optional-key :*) (s/named s/Str "Kill this!")
    (s/optional-key :_conflicts) (s/named [s/Str] "Array of revision IDs")
    (s/optional-key :_deleted_conflicts) (s/named [s/Str] "Array of revision IDs")
-   (s/optional-key :_attachments) {s/Keyword Stub}})
+   (s/optional-key :_attachments) {s/Keyword Stub}
+   (s/optional-key :*) (s/named s/Str "Kill this!")})
 
-(defn couchify [m type]
-  (-> (merge CouchFields m)
-      (assoc :type (s/eq type))))
+(s/defschema CouchDoc
+  "A CouchDB Database Document."
+  (merge Document CouchFields))
 
-(defn uncouchify
-  [m]
-  (dissoc m :_id :_rev :created-at :updated-at :* :_conflicts :_deleted_conflicts
-          :_attachments :type))
-
-(def CouchDoc
-  (-> CouchFields
-      (assoc (s/either s/Keyword s/Str) s/Any)
-      (s/named "CouchDB Document.")))
-
-(def UpdateFailure
+(s/defschema UpdateFailure
+  "Failed update return map."
   {:id ID
    :error s/Str
    :reason s/Str})
 
-(def UpdateSuccess
+(s/defschema UpdateSuccess
+  "Successful update return map."
   {(s/optional-key :ok) (s/named boolean "Doesn't show up on Cloudant, only locally.")
    :id ID
    :rev s/Str})
 
-(def UpdateResult
+(s/defschema UpdateResult
   (s/either UpdateFailure UpdateSuccess))
+
+(def DesignDoc
+  (s/named s/Str "Design document name."))
 
 (def ViewName
   (s/named s/Str "Name of a view in a CouchDB design doc."))
 
-(def ViewEntry
+(def CasedViewName
+  (s/both s/Str (s/pred (fn [^String s] (.startsWith s "downcased-")))))
+
+(s/defschema ViewEntry
+  "One result of a CouchDB view call, with :include-docs option."
   {(s/optional-key :id) ID
    :key s/Any
    :value s/Any
    :doc CouchDoc})
 
-(def DesignDoc
-  (s/named s/Str "Design document name."))
-
-(def SlimView
-  "Schema for a CouchDB view result with :include-docs set to false."
-  [(dissoc ViewEntry :doc)])
-
-(def FatView
+(s/defschema FatView
   "Schema for a CouchDB view result with :include-docs set to true."
   [ViewEntry])
 
-(def View
+(s/defschema SlimView
+  "Schema for CouchDB view results with :include-docs set to false."
+  [(dissoc ViewEntry :doc)])
+
+(s/defschema View
   (s/either SlimView FatView))
 
-(def CasedViewName
-  (s/both s/Str (s/pred (fn [^String s] (.startsWith s "downcased-")))))
+(s/defn uncouchify :- Document
+  "Dissoces all CouchDB specific fields from the document."
+  [m :- CouchDoc]
+  (dissoc m :_id :_rev :created-at :updated-at :* :_conflicts :_deleted_conflicts
+          :_attachments :type))
 
 #+clj
 (do
   (defonce my-db (atom nil))
-
-  ;; ## CouchDB Schema Factories
-
-  ;; TODO: Destroy this when we release a new clutch and make this
-  ;; method public.
-  (defmacro defdbop
-    "Same as defn, but wraps the defined function in another that transparently
-   allows for dynamic or explicit application of database configuration as well
-   as implicit coercion of the first `db` argument to a URL instance."
-    [name & body]
-    `(do (let [ret# (defn ~name ~@body)]
-           (alter-var-root (var ~name) @#'c/with-db*)
-           (alter-meta!
-            (var ~name)
-            update-in [:doc] str
-            "\n\n  When used within the dynamic scope of `with-db`, the initial `db`"
-            "\n  argument is automatically provided.")
-           ret#)))
-
-  (defdbop design-doc-info
-    [db design-document]
-    (let [url (apply utils/url db ["_design" design-document "_info"])]
-      (http/couchdb-request :get url)))
 
   (defn reset-db! [db]
     (reset! my-db db))
@@ -144,13 +123,10 @@
        (let [{:keys [uri database]} conf]
          (reset-db! (couch-connect uri database)))))
 
-  ;;opts will be a map ie {:group true :key some-id}
   (s/defn get-view :- View
     [design-name :- DesignDoc
      map-name :- ViewName
      & [query-params-map post-data-map]]
-    ;;we need to encode the slash in key so the couchdb path doesnt get
-    ;;messed up
     (let [design-name (str design-name (view-suffix))]
       (log/debug "couchdb-get-view" {:design-doc design-name
                                      :view-name map-name})
@@ -198,6 +174,9 @@
                matches))))
 
   (s/defn cased-get :- (s/maybe CouchDoc)
+    "Return all view results where the CouchDB View key equals the
+    query (case-INsensitive). If there are multiple matches, only
+    returns the key that matches case sensitive."
     [design-name :- DesignDoc
      view-name :- CasedViewName
      k :- s/Str]
@@ -209,12 +188,14 @@
 
   (s/defn mark-creation :- {:created-at ps/Timestamp
                             s/Any s/Any}
+    "Adds a created-at timestamp to the CouchDoc."
     [document :- {s/Any s/Any}]
     (-> document
         (update-in [:created-at] (fn [t] (or t (time/timestamp))))))
 
   (s/defn mark-update :- {:updated-at ps/Timestamp
                           s/Any s/Any}
+    "Adds an update timestamp to the CouchDoc."
     [document :- {s/Any s/Any}]
     (assoc document :updated-at (time/timestamp)))
 
@@ -326,8 +307,27 @@
          (into {})))
 
   ;; ## Database Investigation
-  ;;
-  ;; Let's face it, we rewrite these in the repl every damned day.
+
+  ;; TODO: Destroy this when we release a new clutch and make this
+  ;; method public.
+  (defmacro defdbop
+    "Same as defn, but wraps the defined function in another that transparently
+   allows for dynamic or explicit application of database configuration as well
+   as implicit coercion of the first `db` argument to a URL instance."
+    [name & body]
+    `(do (let [ret# (defn ~name ~@body)]
+           (alter-var-root (var ~name) @#'c/with-db*)
+           (alter-meta!
+            (var ~name)
+            update-in [:doc] str
+            "\n\n  When used within the dynamic scope of `with-db`, the initial `db`"
+            "\n  argument is automatically provided.")
+           ret#)))
+
+  (defdbop design-doc-info
+    [db design-document]
+    (let [url (apply utils/url db ["_design" design-document "_info"])]
+      (http/couchdb-request :get url)))
 
   (s/defn count-type :- {(s/maybe s/Str) s/Int}
     "Returns a frequency map of doc types."

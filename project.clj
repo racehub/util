@@ -1,4 +1,4 @@
-(defproject racehub/util "0.2.3"
+(defproject racehub/util "0.2.4"
   :description "Utility functions from RaceHub."
   :url "https://github.com.com/racehub/util"
   :license {:name "Eclipse Public License"
@@ -18,6 +18,7 @@
                  [com.taoensso/carmine "2.6.2"]
                  [com.taoensso/timbre "3.2.1"]
                  [paddleguru/forms-bootstrap "0.9.1" :exclusions [ring/ring]]
+                 [paddleguru/geonames "0.7.0"]
                  [prismatic/schema "0.3.0"]
                  [cheshire "5.3.1"]
                  [clj-redis-session "2.1.0"]

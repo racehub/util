@@ -19,6 +19,10 @@
 (def EST "America/New_York")
 (def PST "America/Los_Angeles")
 
+(s/def UnixTime
+  (s/named s/Int "Instant in time defined as the number of seconds
+  since midnight UTC Jan 1 1970."))
+
 (def valid-calendar-formats
     [#"^[0-1][0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"
      #"^[0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"])
@@ -143,12 +147,22 @@
          (<= s-days (+ now-days n)))))
 
 (s/defn mins-since-epoch :- s/Int
-    "Takes in a timestamp and returns the number of minutes since the Unix
+  "Takes in a timestamp and returns the number of minutes since the Unix
   epoch. Useful for sorting dates."
-    [ts :- s/Str]
-    (time/in-minutes
-     (time/interval (time/epoch)
-                    (timestamp-to-datetime ts))))
+  [ts :- s/Str]
+  (time/in-minutes
+   (time/interval (time/epoch)
+                  (timestamp-to-datetime ts))))
+
+(s/defn calendar-str-to-unix-time :- UnixTime
+  "Returns the seconds from the UNIX epoch (UTC) to the given
+  mm/dd/yyyy in the given time zone; thus describing an instant in
+  time."
+  [s :- s/Str
+   tz :- TimeZone]
+  (time/in-seconds
+   (time/interval (time/epoch)
+                  (calendar-str-to-date-time-obj s tz))))
 
 (s/defn same-date? :- s/Bool
   "Takes in two DateTime objects, and returns true if they represent

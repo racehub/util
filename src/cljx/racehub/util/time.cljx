@@ -332,23 +332,23 @@
     [unix-time-secs :- UnixTime]
     (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
 
-  (s/defn day-from-unix :- s/Int
-    "Returns the day in the local time zone as an integer (1-31) for
-    the given UnixTime."
-    [unix-time-secs :- UnixTime]
-    (time/day (local-js-date-from-unix unix-time-secs)))
-
-  (s/defn month-from-unix :- s/Int
-    "Returns the month in the local time zone as an integer (1-12) for
-    the given UnixTime."
-    [unix-time-secs :- UnixTime]
-    (time/month (local-js-date-from-unix unix-time-secs)))
-
-  (s/defn year-from-unix :- s/Int
-    "Returns the year in the local time zone as an integer for the
-    given UnixTime."
-    [unix-time-secs :- UnixTime]
-    (time/year (local-js-date-from-unix unix-time-secs)))
+  (extend-protocol time/DateTimeProtocol
+    js/Number ;;UnixTime (seconds since epoch)
+    (year [this] (.getYear (local-js-date-from-unix this)))
+    (month [this] (inc (.getMonth (local-js-date-from-unix this))))
+    (day [this] (.getDate (local-js-date-from-unix this)))
+    (day-of-week [this] (let [d (.getDay (local-js-date-from-unix this))]
+                          (if (= d 0) 7 d)))
+    (hour [this] (.getHours (local-js-date-from-unix this)))
+    (minute [this] (.getMinutes (local-js-date-from-unix this)))
+    (second [this] (.getSeconds (local-js-date-from-unix this)))
+    (milli [this] (.getMilliseconds (local-js-date-from-unix this)))
+    (after? [this that] (> (.getTime (local-js-date-from-unix this))
+                           (.getTime (local-js-date-from-unix that))))
+    (before? [this that] (< (.getTime (local-js-date-from-unix this))
+                            (.getTime (local-js-date-from-unix that))))
+    (plus- [this period] ((period-fn period) + (local-js-date-from-unix this)))
+    (minus- [this period] ((period-fn period) - (local-js-date-from-unix this))))
 
   (s/defn to-display-str :- s/Str
     "Formats the given JSDate into our default formatted display str."

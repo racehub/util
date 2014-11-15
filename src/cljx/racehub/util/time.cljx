@@ -314,6 +314,10 @@
 
 #+cljs
 (do
+  (s/defschema JSDate
+    "cljs-time DateTime instance."
+    s/Any)
+
   (def default-date-format "MMM dd, yyyy")
 
   (s/defn js-date-from-unix :- JSDate

@@ -24,8 +24,8 @@
   since midnight UTC Jan 1 1970."))
 
 (def valid-calendar-formats
-    [#"^[0-1][0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"
-     #"^[0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"])
+  [#"^[0-1][0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"
+   #"^[0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]$"])
 
 ;; ## Code
 
@@ -47,12 +47,12 @@
                      (time/now))))
 
 (s/defn convert-to-rfc822 :- s/Str
-    "Takes in a date-time string and converts it to rfc822 format."
-    [s :- s/Str]
-    (let [newstring (format/unparse
-                     (format/formatters :rfc822)
-                     (format/parse s))]
-      (string/replace newstring " +0000" "")))
+  "Takes in a date-time string and converts it to rfc822 format."
+  [s :- s/Str]
+  (let [newstring (format/unparse
+                   (format/formatters :rfc822)
+                   (format/parse s))]
+    (string/replace newstring " +0000" "")))
 
 (s/defn timestamp-to-datetime
   [s :- s/Str]
@@ -106,10 +106,10 @@
           (catch Exception e nil))))
 
 (s/defn after? :- s/Bool
-    "Takes in two timestamps and returns true if a is after b."
-    [a :- s/Str b :- s/Str]
-    (time/after? (calendar-str-to-date-time-obj a)
-                 (calendar-str-to-date-time-obj b)))
+  "Takes in two timestamps and returns true if a is after b."
+  [a :- s/Str b :- s/Str]
+  (time/after? (calendar-str-to-date-time-obj a)
+               (calendar-str-to-date-time-obj b)))
 
 (def now time/now)
 
@@ -131,10 +131,10 @@
    (time/interval (time/epoch) t)))
 
 (s/defn days-since-epoch :- s/Int
-    "Takes in a mm/dd/yyyy and returns the number of days since the Unix
+  "Takes in a mm/dd/yyyy and returns the number of days since the Unix
   epoch. Useful for sorting dates."
-    [s :- s/Str]
-    (in-days (calendar-str-to-date-time-obj s)))
+  [s :- s/Str]
+  (in-days (calendar-str-to-date-time-obj s)))
 
 (s/defn within-n-days? :- s/Bool
   "Takes in a mm/dd/yyyy and returns true if its within plus or minus
@@ -182,25 +182,25 @@
     (same-date? dt1 dt2)))
 
 (s/defn db-date-to-display-str :- (s/maybe s/Str)
-    "Takes in a date object and returns a str suitable for use in a
+  "Takes in a date object and returns a str suitable for use in a
   regatta, ie Jan 12."
-    [date-obj]
-    (try (format/unparse display-format date-obj)
-         (catch #+clj Exception #+cljs :default e nil)))
+  [date-obj]
+  (try (format/unparse display-format date-obj)
+       (catch #+clj Exception #+cljs :default e nil)))
 
 (s/defn db-str-to-display-str :- (s/maybe s/Str)
-    "Takes in a str of the date in the MM/dd/yyyy format, ie 11/12/2012
+  "Takes in a str of the date in the MM/dd/yyyy format, ie 11/12/2012
   and returns 'Nov 12'"
-    [s :- s/Str]
-    (db-date-to-display-str
-     (calendar-str-to-date-time-obj s)))
+  [s :- s/Str]
+  (db-date-to-display-str
+   (calendar-str-to-date-time-obj s)))
 
 (s/defn get-year-from-db-str :- s/Str
-    "Returns a string representing the year of the DateTime object"
-    [d :- s/Str]
-    (format/unparse
-     (:year format/formatters)
-     (calendar-str-to-date-time-obj d)))
+  "Returns a string representing the year of the DateTime object"
+  [d :- s/Str]
+  (format/unparse
+   (:year format/formatters)
+   (calendar-str-to-date-time-obj d)))
 
 (s/defn date->mdy :- s/Str
   [s :- s/Str]
@@ -272,11 +272,11 @@
     (timestamp-to-display-str s :format "MMM d, yyyy"))
 
   (defn format-timestamp
-    "Takes in a timestamp, and returns a nicely formatted
+  "Takes in a timestamp, and returns a nicely formatted
   string. ."
-    [ts & {:as opts}]
-    (format/unparse (format/formatter (build-formatter opts))
-                    (timestamp-to-datetime ts)))
+  [ts & {:as opts}]
+  (format/unparse (format/formatter (build-formatter opts))
+                  (timestamp-to-datetime ts)))
 
   (s/defn midnight :- DateMidnight
     "Returns the midnight representing the BEGINNING of the DateTime."
@@ -301,13 +301,73 @@
          (finally (DateTimeUtils/setCurrentMillisSystem))))
 
   (defmacro with-time
-    "Executes the body with the supplied time mocked. So, calls to (now)
+  "Executes the body with the supplied time mocked. So, calls to (now)
   will return that time."
-    [t & body]
-    `(with-time* ~t (fn [] ~@body)))
+  [t & body]
+  `(with-time* ~t (fn [] ~@body)))
 
   (defn month-name
-    "Takes in a date object and returns the month name."
-    [date-obj]
-    (format/unparse (format/formatter "MMM")
-                    date-obj)))
+  "Takes in a date object and returns the month name."
+  [date-obj]
+  (format/unparse (format/formatter "MMM")
+                  date-obj)))
+
+#+cljs
+(do
+  (def default-date-format "MMM dd, yyyy")
+
+  (s/defn js-date-from-unix :- JSDate
+    "Takes in the number of seconds since last epoch and converts it
+    to a DateTime in the UTC Time Zone."
+    [unix-time-secs :- UnixTime]
+    (coerce/from-long (* 1000 unix-time-secs)))
+
+  (s/defn local-js-date-from-unix :- JSDate
+    "Takes in the number of seconds since last epoch and converts it
+    to a DateTime in the browser's local time zone."
+    [unix-time-secs :- UnixTime]
+    (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
+
+  (s/defn day-from-unix :- s/Int
+    "Returns the day in the local time zone as an integer (1-31) for
+    the given UnixTime."
+    [unix-time-secs :- UnixTime]
+    (time/day (local-js-date-from-unix unix-time-secs)))
+
+  (s/defn month-from-unix :- s/Int
+    "Returns the month in the local time zone as an integer (1-12) for
+    the given UnixTime."
+    [unix-time-secs :- UnixTime]
+    (time/month (local-js-date-from-unix unix-time-secs)))
+
+  (s/defn year-from-unix :- s/Int
+    "Returns the year in the local time zone as an integer for the
+    given UnixTime."
+    [unix-time-secs :- UnixTime]
+    (time/year (local-js-date-from-unix unix-time-secs)))
+
+  (s/defn to-display-str :- s/Str
+    "Formats the given JSDate into our default formatted display str."
+    [date :- JSDate]
+    (tf/unparse (tf/formatter default-date-format) date))
+
+  (s/defn in-future? :- s/Bool
+    "Is the given date afer the current client time? Converts the
+    given date into local time, in case its not already."
+    [date :- JSDate]
+    (time/after? (time/to-default-time-zone date) (time/time-now)))
+
+  (s/defn in-past? :- s/Bool
+    "Is the given date before the current client time? Converts the
+    given date into local time, in case its not already."
+    [date :- JSDate]
+    (time/before? (time/to-default-time-zone date) (time/time-now)))
+
+  (s/defn happening? :- s/Bool
+    "Is the current date within the two give dates? Converts the dates
+    into local time."
+    [date-a :- JSDate
+     date-b :- JSDate]
+    (time/within? (time/to-default-time-zone date-a)
+                  (time/to-default-time-zone date-b)
+                  (time/time-now))))

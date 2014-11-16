@@ -333,7 +333,8 @@
     (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
 
   (extend-protocol time/DateTimeProtocol
-    js/Number ;;UnixTime (seconds since epoch)
+    js/Number ;;UnixTime (seconds since epoch), converted to LOCAL
+    ;;time (not UTC)
     (year [this] (year (local-js-date-from-unix this)))
     (month [this] (month (local-js-date-from-unix this)))
     (day [this] (day (local-js-date-from-unix this)))
@@ -346,8 +347,8 @@
                                 (local-js-date-from-unix that)))
     (before? [this that] (before? (local-js-date-from-unix this)
                                   (local-js-date-from-unix that)))
-    (plus- [this period] ((period-fn period) + (local-js-date-from-unix this)))
-    (minus- [this period] ((period-fn period) - (local-js-date-from-unix this))))
+    (plus- [this period] ((time/period-fn period) + (local-js-date-from-unix this)))
+    (minus- [this period] ((time/period-fn period) - (local-js-date-from-unix this))))
 
   (s/defn to-display-str :- s/Str
     "Formats the given JSDate into our default formatted display str."

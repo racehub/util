@@ -154,6 +154,7 @@
    (time/interval (time/epoch)
                   (timestamp-to-datetime ts))))
 
+#+clj
 (s/defn calendar-str-to-unix-time :- UnixTime
   "Returns the seconds from the UNIX epoch (UTC) to the given
   mm/dd/yyyy in the given time zone; thus describing an instant in
@@ -335,25 +336,25 @@
   (extend-protocol time/DateTimeProtocol
     js/Number ;;UnixTime (seconds since epoch), converted to LOCAL
     ;;time (not UTC)
-    (year [this] (year (local-js-date-from-unix this)))
-    (month [this] (month (local-js-date-from-unix this)))
-    (day [this] (day (local-js-date-from-unix this)))
-    (day-of-week [this] (day-of-week (local-js-date-from-unix this)))
-    (hour [this] (hour (local-js-date-from-unix this)))
-    (minute [this] (minute (local-js-date-from-unix this)))
-    (second [this] (second (local-js-date-from-unix this)))
-    (milli [this] (milli (local-js-date-from-unix this)))
-    (after? [this that] (after? (local-js-date-from-unix this)
-                                (local-js-date-from-unix that)))
-    (before? [this that] (before? (local-js-date-from-unix this)
-                                  (local-js-date-from-unix that)))
+    (year [this] (time/year (local-js-date-from-unix this)))
+    (month [this] (time/month (local-js-date-from-unix this)))
+    (day [this] (time/day (local-js-date-from-unix this)))
+    (day-of-week [this] (time/day-of-week (local-js-date-from-unix this)))
+    (hour [this] (time/hour (local-js-date-from-unix this)))
+    (minute [this] (time/minute (local-js-date-from-unix this)))
+    (second [this] (time/second (local-js-date-from-unix this)))
+    (milli [this] (time/milli (local-js-date-from-unix this)))
+    (after? [this that] (time/after? (local-js-date-from-unix this)
+                                     (local-js-date-from-unix that)))
+    (before? [this that] (time/before? (local-js-date-from-unix this)
+                                       (local-js-date-from-unix that)))
     (plus- [this period] ((time/period-fn period) + (local-js-date-from-unix this)))
     (minus- [this period] ((time/period-fn period) - (local-js-date-from-unix this))))
 
   (s/defn to-display-str :- s/Str
     "Formats the given JSDate into our default formatted display str."
     [date :- JSDate]
-    (tf/unparse (tf/formatter default-date-format) date))
+    (format/unparse (format/formatter default-date-format) date))
 
   (s/defn in-future? :- s/Bool
     "Is the given date afer the current client time? Converts the

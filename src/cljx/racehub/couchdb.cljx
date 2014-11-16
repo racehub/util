@@ -83,6 +83,10 @@
 (s/defschema View
   (s/either SlimView FatView))
 
+(defn couchify [m type]
+  (-> (merge CouchFields m)
+      (assoc :type (s/eq type))))
+
 (s/defn uncouchify :- Document
   "Dissoces all CouchDB specific fields from the document."
   [m :- CouchDoc]

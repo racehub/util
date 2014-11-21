@@ -334,8 +334,8 @@
     (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
 
   (extend-protocol time/DateTimeProtocol
-    js/Number ;;UnixTime (seconds since epoch), converted to LOCAL
-    ;;time (not UTC)
+    number
+    ;;UnixTime (seconds since epoch), converted to LOCAL time (not UTC)
     (year [this] (time/year (local-js-date-from-unix this)))
     (month [this] (time/month (local-js-date-from-unix this)))
     (day [this] (time/day (local-js-date-from-unix this)))

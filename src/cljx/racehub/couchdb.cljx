@@ -83,6 +83,11 @@
 (s/defschema View
   (s/either SlimView FatView))
 
+(s/defn id
+  "Faster way of essentialy writing (s/named s/Str 'description')"
+  [schema-name :- s/Str]
+  s/Str)
+
 (defn couchify [m type]
   (-> (merge CouchFields m)
       (assoc :type (s/eq type))))

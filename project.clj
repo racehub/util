@@ -18,6 +18,7 @@
                  [com.novemberain/validateur "2.3.1"]
                  [com.taoensso/carmine "2.6.2"]
                  [com.taoensso/timbre "3.2.1"]
+                 [optimus "0.15.1"]
                  [org.apache.httpcomponents/httpclient "4.3.5"]
                  [paddleguru/clutch "0.5.0"]
                  [paddleguru/forms-bootstrap "0.9.1" :exclusions [ring/ring]]

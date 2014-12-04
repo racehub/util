@@ -5,6 +5,7 @@
             [optimus.assets :as assets]
             [optimus.optimizations :as optimizations]
             [optimus.strategies :as strategies]
+            [racehub.schema :refer [Function]]
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.util.mime-type :as mt]
             [ring.util.response :as resp]
@@ -81,15 +82,17 @@
         (public-cache-control)
         (add-cdn-base-url-to-assets conf))))
 
-(s/defn wrap-optimus
-  "Ring Middleware that applies Optimus front-end optimizations."
-  [handler
-   bundles [s/Any]
+(s/defn wrap-optimus :- Function
+  "Ring Middleware that applies Optimus front-end
+  optimizations. Get-assets is a function of no args that should
+  return a list of assets."
+  [handler :- Function
+   get-assets :- Function
    conf :- {:dev? s/Bool
             :cdn s/Str
             s/Any s/Any}]
   (-> handler
-      (optimus/wrap (fn [] bundles)
+      (optimus/wrap get-assets
                     (if (:dev? conf)
                       optimizations/none
                       (optimize-all (:cdn conf)))

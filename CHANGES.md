@@ -1,3 +1,8 @@
+## 0.3.0
+
+- Changed the json login function to accept function arguments. See
+  docs.
+
 ## 0.2.1
 
 - Fix to the oauth flow for a bug that jacked up the redirect URL.

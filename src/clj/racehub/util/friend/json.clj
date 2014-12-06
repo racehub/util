@@ -2,7 +2,8 @@
   "JSON authentication workflow for Friend."
   (:require [cemerick.friend :as friend]
             [cemerick.friend.workflows :as workflows]
-            [racehub.util.liberator :as l]))
+            [racehub.util.liberator :as l]
+            [schema.core :as s]))
 
 ;; ## Notes for Improvement
 ;;
@@ -24,10 +25,10 @@
 
 (defn login-failed
   "called when JSON authentication fails."
-  []
-  (-> {:ok false
-       :reason "authentication failed"}
-      (l/json-response 401)))
+  ([] (login-failed nil))
+  ([reason]
+     (-> {:ok false :reason (or reason "authentication failed")}
+         (l/json-response 401))))
 
 (defn already-logged-in []
   (l/json-response
@@ -54,7 +55,21 @@
 
 ;; ## Public Methods
 
-(defn extract-creds [req]
+(s/defschema Credentials
+  "Credentials supplied by the user for json login."
+  {:username s/Str
+   :password s/Str})
+
+(s/defschema AuthReturn
+  "Return value of the supplied authorization function. Useful if you
+  want to provide a custom failure message."
+  (s/either {:ok (s/pred true?)
+             :user s/Any}
+            {:ok (s/pred false?)
+             (s/optional-key :reason) s/Str}))
+
+(s/defn extract-creds :- Credentials
+  [req]
   (let [creds (:json-params req)]
     {:username (creds "username")
      :password (creds "password")}))
@@ -62,19 +77,32 @@
 (defn should-redirect? [req]
   (= "text/html" (l/get-media req available-media-types)))
 
-(defn json-login
+(s/defn json-login
   "json auth workflow implementation for friend. It's required that
-  you're using wrap-json-params if you decide to use this bad boy."
-  [req]
-  (when (json-login-route? req)
-    (let [{:keys [username password] :as creds} (extract-creds req)
-          creds (with-meta creds {::friend/workflow :json-login})
-          cred-fn (:credential-fn (::friend/auth-config req))]
-      (if (boolean (friend/identity req))
-        (already-logged-in)
-        (if-let [user-record (and username password (cred-fn creds))]
-          (workflows/make-auth user-record
-                               {::friend/workflow :json-login
-                                ::friend/redirect-on-auth?
-                                (should-redirect? req)})
-          (login-failed))))))
+  you're using wrap-json-params if you decide to use this bad boy.
+
+  Accepts a function of credentials and the ring request. The function
+  must return an instance of AuthReturn.
+
+  If "
+  ([] (json-login (fn [creds req]
+                    (let [f (:credential-fn (::friend/auth-config req))]
+                      (if-let [user (f creds)]
+                        {:ok true :user user}
+                        {:ok false})))))
+  ([cred-fn :- (s/=> AuthReturn Credentials {s/Any s/Any})]
+     (fn [req]
+       (when (json-login-route? req)
+         (let [{:keys [username password] :as creds} (extract-creds req)
+               creds (with-meta creds {::friend/workflow :json-login})]
+           (if (boolean (friend/identity req))
+             (already-logged-in)
+             (if-let [{:keys [ok user reason]}
+                      (and username password (cred-fn creds req))]
+               (if ok
+                 (workflows/make-auth user
+                                      {::friend/workflow :json-login
+                                       ::friend/redirect-on-auth?
+                                       (should-redirect? req)})
+                 (login-failed reason))
+               (login-failed))))))))

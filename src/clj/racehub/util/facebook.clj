@@ -80,7 +80,7 @@
   https://developers.facebook.com/docs/graph-api/reference/v2.1/user"
   [endpoint :- s/Str
    {:keys [query-params params]}
-   :- {(s/optional-key :query-params) {:token s/Str, s/Any s/Any}
+   :- {(s/optional-key :query-params) {s/Any s/Any}
        (s/optional-key :params) {s/Any s/Any}}]
   (let [opts (assoc params :query-params query-params)]
     (body (http/get (str root endpoint) opts))))

@@ -71,6 +71,10 @@
      @(http/get (str root "oauth/access_token")
                 {:query-params params}))))
 
+(s/defschema GetOpts
+  {(s/optional-key :query-params) {s/Any s/Any}
+   (s/optional-key :params) {s/Any s/Any}})
+
 (s/defn api-get :- {s/Any s/Any}
   "Makes a call to Facebook's /user/id endpoint for the user linked to
   the supplied token. Gives you a map with a bunch of information
@@ -79,9 +83,7 @@
   See the documentation for more details on what the map holds:
   https://developers.facebook.com/docs/graph-api/reference/v2.1/user"
   [endpoint :- s/Str
-   {:keys [query-params params]}
-   :- {(s/optional-key :query-params) {s/Any s/Any}
-       (s/optional-key :params) {s/Any s/Any}}]
+   {:keys [query-params params]} :- GetOpts]
   (let [opts (assoc params :query-params query-params)]
     (body (http/get (str root endpoint) opts))))
 
@@ -93,6 +95,11 @@
 ;;long-lived server tokens.
 
 (s/defn exchange-token :- (s/either APIError {:token s/Str})
+  "Accepts a client-side token from the Facebook JS SDK and exchanges
+  it for a long-lived token. The long token lasts for about 60 days
+  from last use. If the user logs in with facebook, or uses our site
+  and our JS SDK refreshes them, the token renews for another sixty
+  days."
   [token :- s/Str]
   (let [{:keys [client-id client-secret]} (:oauth (facebook-config))
         resp @(http/get (str root "oauth/access_token")
@@ -130,7 +137,8 @@
   the supplied token. Gives you a map with a bunch of information
   about the user.
 
-  Optionall you can give a list of fields
+  Optionally you can supply a list of fields that you want
+  returned. If you don't supply any, you get a grab-bag of fields.
 
   See the documentation for more details on what the map holds:
   https://developers.facebook.com/docs/graph-api/reference/v2.1/user"
@@ -141,13 +149,13 @@
                                    :fields (str/join "," fields)}})))
 
 (s/defschema CoverPhoto
-  {:id s/Str
+  {:id (s/named s/Str "ID of the photo in Facebook.")
    (s/optional-key :offset_y) s/Int
-   (s/optional-key :source) s/Str})
+   (s/optional-key :source) (s/named s/Str "Photo URL.")})
 
 (s/defschema ProfilePhoto
   {:is_silhouette s/Bool
-   :url s/Str
+   :url (s/named s/Str "URL of the photo on Facebook's CDN.")
    (s/optional-key :width) s/Int
    (s/optional-key :height) s/Int})
 

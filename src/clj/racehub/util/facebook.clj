@@ -108,18 +108,21 @@
 ;; ### Profile Info
 
 (s/defschema UserData
-  "Response from Facebook's me endpoint."
-  {:email s/Str
-   :first_name s/Str
-   :timezone (s/named s/Int "UTC offset.")
-   :locale s/Str
-   :name s/Str
-   :updated_time s/Str
-   :link s/Str
-   :id s/Str
-   :last_name s/Str
-   :gender s/Str
-   :verified s/Bool
+  "Response from Facebook's me endpoint. The keys here are really just
+  examples of the fields that can come through. If you ask for
+  specific fields, the rest will be missing, and certain users will
+  just not have certain fields."
+  {(s/optional-key :email) s/Str
+   (s/optional-key :first_name) s/Str
+   (s/optional-key :timezone) (s/named s/Int "UTC offset.")
+   (s/optional-key :locale) s/Str
+   (s/optional-key :name) s/Str
+   (s/optional-key :updated_time) s/Str
+   (s/optional-key :link) s/Str
+   (s/optional-key :id) s/Str
+   (s/optional-key :last_name) s/Str
+   (s/optional-key :gender) s/Str
+   (s/optional-key :verified) s/Bool
    s/Any s/Any})
 
 (s/defn me :- UserData

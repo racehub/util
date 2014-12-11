@@ -97,9 +97,12 @@
 (s/defn exchange-token :- (s/either APIError {:token s/Str})
   "Accepts a client-side token from the Facebook JS SDK and exchanges
   it for a long-lived token. The long token lasts for about 60 days
-  from last use. If the user logs in with facebook, or uses our site
-  and our JS SDK refreshes them, the token renews for another sixty
-  days."
+  from last use.
+
+  If the user logs in with facebook, or uses our site and our JS SDK
+  refreshes them, the token renews for another sixty days.
+
+  The client side token by itself is only good for an hour or so."
   [token :- s/Str]
   (let [{:keys [client-id client-secret]} (:oauth (facebook-config))
         resp @(http/get (str root "oauth/access_token")

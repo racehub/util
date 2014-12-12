@@ -1,6 +1,7 @@
 (ns racehub.util.validation
   "Shared validation utilities."
-  (:require [schema.core :as s :include-macros true]
+  (:require [racehub.util :as u]
+            [schema.core :as s :include-macros true]
             [validateur.validation :as v]
             #+clj [forms-bootstrap.validation :as fbv]))
 
@@ -11,7 +12,69 @@
 
 ;; ## Code
 
+(defn validate-some
+  "Takes a sequence of validators and returns a validator that returns
+  the result of the FIRST failing validator, short-circuiting after."
+  [& validators]
+  (fn [m]
+    (loop [[v & rest] validators]
+      (if-not v
+        [true #{}]
+        (let [[passed? :as result] (v m)]
+          (if passed?
+            (recur rest)
+            result))))))
+
+(s/defn errors? :- s/Bool
+  "Takes in a key (either a single keyword or a nested key) and checks
+  if there are any errors present in the validation error map for that
+  key."
+  [k :- (s/either s/Keyword [s/Keyword]) m]
+  (let [[k & rest :as ks] (u/collectify k)]
+    (boolean
+     (not-empty
+      (if (nil? rest)
+        (or (m k) (m ks))
+        (m ks))))))
+
+(s/defn lookup-k :- s/Keyword
+  [k :- s/Keyword]
+  (keyword (str (name k) "-lookup")))
+
+(s/defn lookup-field
+  "Returns a lookup-field schema"
+  [k :- s/Keyword schema]
+  (let [lookup (lookup-k k)]
+    {k schema
+     lookup {:state (s/enum :success :pending :failed)
+             (s/optional-key :value) schema}}))
+
+(s/defschema LookupFieldValidatorOpts
+  {(s/optional-key :missing-message) s/Str
+   (s/optional-key :invalid-message) s/Str})
+
+(s/defn validate-lookup
+  "Returns the validator that handles the lookup field."
+  [k opts :- LookupFieldValidatorOpts]
+  (v/validate-with-predicate
+   k
+   (comp #{:success} :state (lookup-k k))
+   :message (:invalid-message opts)))
+
+(s/defn lookup-validator
+  "Returns a validator that acts on pairs of the schema returned by
+  lookup-field. Checks that the key is present and that the lookup
+  field has a successful value."
+  [k :- s/Keyword
+   opts :- LookupFieldValidatorOpts]
+  (v/validation-set
+   (validate-some
+    (v/presence-of k :message (:missing-message opts))
+    (validate-lookup k opts))))
+
 (defn validate-set-when
+  "Returns a validator that only acts on the map if (predicate m)
+  passes."
   [predicate validation-set]
   (fn [m]
     (if (predicate m)

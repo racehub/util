@@ -34,8 +34,14 @@
         compound-v (v/validation-set
                     (v/presence-of [:a :b])
                     (v/presence-of :c))]
+
     (is (errors? :cake-count (v {}))
         "Missing key triggers an error.")
+
+    (is (= (errors [:cake-count] (v {}))
+           (errors :cake-count (v {}))
+           #{"can't be blank"})
+        "errors returns the actual error.")
 
     (is (errors? :cake-count {[:cake-count] #{"something"}})
         "It works if the error map has a nested, single keyword (as

@@ -25,17 +25,18 @@
             (recur rest)
             result))))))
 
-(s/defn errors? :- s/Bool
+(s/defn errors :- (s/maybe #{s/Str})
   "Takes in a key (either a single keyword or a nested key) and checks
   if there are any errors present in the validation error map for that
   key."
   [k :- (s/either s/Keyword [s/Keyword]) m]
   (let [[k & rest :as ks] (u/collectify k)]
-    (boolean
-     (not-empty
-      (if (nil? rest)
-        (or (m k) (m ks))
-        (m ks))))))
+    (not-empty
+     (if (nil? rest)
+       (or (m k) (m ks))
+       (m ks)))))
+
+(def errors? (comp boolean errors))
 
 (s/defn lookup-k :- s/Keyword
   [k :- s/Keyword]

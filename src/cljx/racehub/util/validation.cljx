@@ -12,31 +12,6 @@
 
 ;; ## Code
 
-(defn validate-some
-  "Takes a sequence of validators and returns a validator that returns
-  the result of the FIRST failing validator, short-circuiting after."
-  [& validators]
-  (fn [m]
-    (loop [[v & rest] validators]
-      (if-not v
-        [true #{}]
-        (let [[passed? :as result] (v m)]
-          (if passed?
-            (recur rest)
-            result))))))
-
-(s/defn errors? :- s/Bool
-  "Takes in a key (either a single keyword or a nested key) and checks
-  if there are any errors present in the validation error map for that
-  key."
-  [k :- (s/either s/Keyword [s/Keyword]) m]
-  (let [[k & rest :as ks] (u/collectify k)]
-    (boolean
-     (not-empty
-      (if (nil? rest)
-        (or (m k) (m ks))
-        (m ks))))))
-
 (s/defn lookup-k :- s/Keyword
   [k :- s/Keyword]
   (keyword (str (name k) "-lookup")))
@@ -68,7 +43,7 @@
   [k :- s/Keyword
    opts :- LookupFieldValidatorOpts]
   (v/validation-set
-   (validate-some
+   (v/validate-some
     (v/presence-of k :message (:missing-message opts))
     (validate-lookup k opts))))
 

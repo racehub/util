@@ -15,7 +15,7 @@
                  [com.cemerick/url "0.1.1"
                   :exclusions [com.cemerick/clojurescript.test]]
                  [com.googlecode.libphonenumber/libphonenumber "5.0"]
-                 [com.novemberain/validateur "2.3.1"]
+                 [com.novemberain/validateur "2.4.0"]
                  [com.taoensso/carmine "2.6.2"]
                  [com.taoensso/timbre "3.2.1"]
                  [optimus "0.15.1"]

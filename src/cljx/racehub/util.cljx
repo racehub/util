@@ -332,7 +332,6 @@ fraction. Negative numbers return false."
     (try (Integer/parseInt i)
          (catch Exception _)))
 
-  ;;this belongs in utils or somewhere else
   (s/defn national-phone-number :- (s/maybe s/Int)
     "Takes in a phone number string, which doesnt have to be all
   numbers, and returns a long of the phone number using Google's
@@ -343,12 +342,6 @@ fraction. Negative numbers return false."
              .getNationalNumber)
          (catch NumberParseException _)))
 
-  ;; Clojure-only bullshit.
-  (defn collectify [obj]
-    (cond (nil? obj) []
-          (or (sequential? obj) (instance? List obj) (set? obj)) obj
-          :else [obj]))
-
   (defn ensure-defaults [m & k-default-pairs]
     {:pre [(even? (count k-default-pairs))]}
     (reduce (fn [m [k default]]
@@ -358,8 +351,14 @@ fraction. Negative numbers return false."
                              (or (not-empty v) default)
                              (or v default)))))
             m
-            (partition 2 k-default-pairs)))
+            (partition 2 k-default-pairs))))
 
+(defn collectify [obj]
+  (cond (nil? obj) []
+        (or (sequential? obj) #+clj (instance? List obj) (set? obj)) obj
+        :else [obj]))
+#+clj
+(do
   (s/defn index-of :- (s/maybe s/Int)
     [v :- ArraySeq entry :- s/Any]
     (let[idx (.indexOf v entry)]

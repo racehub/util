@@ -321,6 +321,11 @@ fraction. Negative numbers return false."
   [i :- s/Num]
   (Math/round (* i 100.0)))
 
+(defn collectify [obj]
+  (cond (nil? obj) []
+        (or (sequential? obj) #+clj (instance? List obj) (set? obj)) obj
+        :else [obj]))
+
 #+clj
 (do
   (s/defn uuid :- s/Str
@@ -351,14 +356,8 @@ fraction. Negative numbers return false."
                              (or (not-empty v) default)
                              (or v default)))))
             m
-            (partition 2 k-default-pairs))))
+            (partition 2 k-default-pairs)))
 
-(defn collectify [obj]
-  (cond (nil? obj) []
-        (or (sequential? obj) #+clj (instance? List obj) (set? obj)) obj
-        :else [obj]))
-#+clj
-(do
   (s/defn index-of :- (s/maybe s/Int)
     [v :- ArraySeq entry :- s/Any]
     (let[idx (.indexOf v entry)]

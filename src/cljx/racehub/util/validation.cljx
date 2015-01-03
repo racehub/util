@@ -33,7 +33,7 @@
   [k opts :- LookupFieldValidatorOpts]
   (v/validate-with-predicate
    k
-   (comp #{:success} :state (lookup-k k))
+   (comp not #{:failed} :state (lookup-k k))
    :message (:invalid-message opts)))
 
 (s/defn lookup-validator

@@ -168,17 +168,37 @@
   [token :- s/Str]
   (:cover (me token ["cover"])))
 
+(s/defn largest-cover
+  "Takes in a FB cover photo and queries the API for the highest
+  resolution version of that photo."
+  [cover :- CoverPhoto]
+  (let [{:keys [height width source]}
+        (->> (api-get (:id cover)
+                      {:query-params {:type "large" :redirect false}
+                       :params {:oauth-token (server-secret)}})
+             :images
+             (sort-by (complement :width))
+             (first))]
+    {:url source
+     :y-offset (:offset_y cover)
+     :height height
+     :width width}))
+
+(s/defschema ProfilePhotoOpts
+  "Options for the profile-photo API call."
+  {:user-id s/Str
+   (s/optional-key :width) s/Int
+   (s/optional-key :height) s/Int})
+
 (s/defn profile-photo :- (s/maybe ProfilePhoto)
   "If the supplied user exists, returns information for the supplied
   user's cover photo. If the user's cover photo isn't set, only
-  the :id is present.
-
-  The actual API can take width and height parameters. These aren't
-  implemented yet."
-  [facebook-id :- s/Str]
+  the :id is present."
+  [opts :- ProfilePhotoOpts]
   (:data
-   (api-get (str facebook-id "/picture")
-            {:query-params {:type "large" :redirect false}
+   (api-get (str (:user-id opts) "/picture")
+            {:query-params (merge (select-keys opts [:width :height])
+                                  {:type "large" :redirect false})
              :params {:oauth-token (server-secret)}})))
 
 (comment

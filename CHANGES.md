@@ -1,3 +1,7 @@
+## 0.3.4
+
+- add deep-merge
+
 ## 0.3.2
 
 - Added more validation helpers

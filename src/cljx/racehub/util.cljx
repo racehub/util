@@ -93,6 +93,13 @@
   (into {} (for [[k v] m]
              [k (f v)])))
 
+(defn deep-merge [& xs]
+  (letfn [(merge* [l r]
+            (if (and (map? l) (map? r))
+              (merge-with merge* l r)
+              r))]
+    (reduce merge* {} xs)))
+
 (defn merge-with-map
   "Returns a map that consists of the rest of the maps conj-ed onto
   the first.  If a key occurs in more than one map, the mapping(s)

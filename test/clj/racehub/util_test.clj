@@ -21,6 +21,25 @@
   (is (= "$12.04" (pennies->currency 1204)))
   (is (= "-$12.37" (pennies->currency -1237))))
 
+(deftest deep-merge-test
+  (is (= {} (deep-merge))
+      "Deep merging nothing results in nothing.")
+  (is (= {:x "y"} (deep-merge {:x "y"}))
+      "Deep merging a single map returns that map.")
+  (let [base {:name {:first {:first-letter "s" :rest "am"}
+                     :last "ritchie"}}]
+    (is (= (assoc base :a "b") (deep-merge base {:a "b"}))
+        "deep merging when a key's missing just adds that key.")
+
+    (is (= {:name {:first {:first-letter "s" :rest "ucker"}
+                   :last "ritchie"}}
+           (deep-merge base {:name {:first {:rest "ucker"}}}))
+        "deep-merging will knock out keys way in, but leave other keys
+        alone.")
+
+    (is (= {:name "Sam"} (deep-merge base {:name "Sam"}))
+        "You can knock maps out too.")))
+
 (deftest merge-with-map-test
   (fact
     "merge-with-map: If the supplied function map has a function to

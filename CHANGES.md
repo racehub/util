@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Add pennies schema
+
 ## 0.3.4
 
 - add deep-merge

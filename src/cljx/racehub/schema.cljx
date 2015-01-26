@@ -41,6 +41,10 @@
 
 (def Currency NonNegativeInt)
 
+(s/defschema Pennies
+  "Pennies can be negative for refunds."
+  s/Int)
+
 (s/defschema Millis
   "non-negative integer representing milliseconds."
   NonNegativeInt)

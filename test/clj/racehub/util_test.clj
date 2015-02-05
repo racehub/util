@@ -4,7 +4,14 @@
   (:require [clojure.test :refer [is deftest]]
             [clojure.test.check :as sc]
             [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :refer [for-all]]))
+            [clojure.test.check.properties :refer [for-all]]
+            [schema.core :as s]))
+
+(deftest format-currency-test
+  (is (= 1024.00
+         (format-currency "1,024.00")
+         (format-currency 1024))
+      "Numbers gets parsed."))
 
 ;; TODO: Add test.check to round trip amounts through the currency
 ;; string functions.
@@ -15,7 +22,9 @@
   (is (= 543 (currency-str->pennies "$5.43"))
       "Dollar signs get stripped.")
   (is (= 600 (currency-str->pennies "6.00"))
-      "Dollar sign doesn't need to be present."))
+      "Dollar sign doesn't need to be present.")
+  (is (= 600000 (currency-str->pennies "6,000.00"))
+      "Commas are okay."))
 
 (deftest pennies->currency-test
   (is (= "$12.04" (pennies->currency 1204)))
@@ -90,8 +99,9 @@
       "large ints are printed in a sexy way."))
 
 (deftest currency-amt-test
-  (is (= "0.00" (currency-amt nil))
-      "Nil handling works.")
+  (s/without-fn-validation
+   (is (= "0.00" (currency-amt nil))
+       "Nil handling works."))
   (is (= "0.00" (currency-amt "asdf"))
       "Busted strings parse to 0.")
   (is (= "12.43" (currency-amt 12.43))
@@ -104,8 +114,8 @@
       "Strings rounds too.")
   (is (= "100,123.00" (currency-amt 100123))
       "large ints are printed in a sexy way.")
-  (is (= "0.00" (currency-amt "100,123"))
-      "String input with commas fails (returns 0)")
+  (is (= "100,123.00" (currency-amt "100,123"))
+      "String input with commas succeeds")
   (is (= "-12.00" (currency-amt "-12.00"))
       "Negative numbers yield negative currencies."))
 

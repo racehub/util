@@ -273,7 +273,7 @@ items)]"
   [s :- (s/maybe (s/either s/Str s/Num))]
   (cond (nil? s) 0.0
         (number? s) (double s)
-        :else (str-to-double (st/replace s #"[^\d.-]+" ""))))
+        :else (str-to-double (st/replace s #"($|[^\d.-])+" ""))))
 
 (s/defn ^:export currency-amt :- s/Str
   [n :- (s/maybe (s/either s/Str s/Num))]
@@ -305,9 +305,11 @@ fraction. Negative numbers return false."
   amount. Truncates to two decimal points. Negative amounts not
   allowed. All invalid amounts become $0.00. Commas allowed."
   [s :- s/Str]
-  (if (valid-currency-amt? s)
-    s
-    (currency-amt (zero-or-positive (str-to-double s)))))
+  (let [s (#+cljs gstring/format #+clj format "%.2f"(format-currency s))]
+    (if (valid-currency-amt? s)
+      s
+      (currency-amt
+       (zero-or-positive (str-to-double s))))))
 
 (s/defn pennies->double :- (s/maybe s/Num)
     "converts the incoming pennies into a double."

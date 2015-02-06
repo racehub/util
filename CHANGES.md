@@ -1,3 +1,7 @@
+## 0.3.6
+
+- Fix comma issue with currencies (https://github.com/racehub/util/pull/26)
+
 ## 0.3.5
 
 - Add pennies schema

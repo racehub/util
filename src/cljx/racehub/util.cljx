@@ -267,9 +267,17 @@ items)]"
 (def max-time
   (time-to-ms "99:59:59.99"))
 
+(s/defn format-currency :- s/Num
+  "Strips anything from the string that's not a decimal pt or a
+  digit."
+  [s :- (s/maybe (s/either s/Str s/Num))]
+  (cond (nil? s) 0.0
+        (number? s) (double s)
+        :else (str-to-double (st/replace s #"[^\d.-]+" ""))))
+
 (s/defn ^:export currency-amt :- s/Str
   [n :- (s/maybe (s/either s/Str s/Num))]
-  (let [num (str-to-double n)
+  (let [num (format-currency n)
         nocommas (#+clj format #+cljs gstring/format "%.2f" num)
         whole-decimal-vec (st/split nocommas #"\.")
         whole-num-str (pretty-int (first whole-decimal-vec))]
@@ -414,9 +422,8 @@ fraction. Negative numbers return false."
   (s/defn currency-str->pennies :- (s/maybe s/Int)
     [price :- (s/maybe s/Str)]
     (when price
-      (-> (st/replace price #"\$" "")
-          (str-to-double)
-          (double->pennies))))
+      (double->pennies
+       (format-currency price))))
 
   (s/defn hexadecimalize :- s/Str
     "Converts byte array to hex string"

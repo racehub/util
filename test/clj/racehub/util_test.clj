@@ -1,7 +1,7 @@
 (ns racehub.util-test
   (:use midje.sweet
         racehub.util)
-  (:require [clojure.test :refer [is deftest]]
+  (:require [clojure.test :refer [is deftest testing]]
             [clojure.test.check :as sc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :refer [for-all]]
@@ -10,6 +10,7 @@
 (deftest format-currency-test
   (is (= 1024.00
          (format-currency "1,024.00")
+         (format-currency "1,024")
          (format-currency 1024))
       "Numbers gets parsed."))
 
@@ -157,16 +158,17 @@
       "Rounds to nearest penny.")
   (is (= "12,342.03" (clean-currency "12,342.03"))
       "Well placed commas are valid.")
-  (is (= "0.00" (clean-currency "1234,2.03"))
-      "Improperly placed commas are invalid.")
+  (is (= "12,342.00" (clean-currency "12,342.0"))
+      "Single decimals are okay.")
+  (is (= "12,342.03" (clean-currency "1234,2.03"))
+      "Improperly placed commas are fine. they just get moved.")
   (is (= "1,000.00" (clean-currency "1000"))
       "Inserts commas if appropriate.")
   (is (= "0.00" (clean-currency "-34"))
       "Negative amounts are invalid, return zero.")
-  (is (= "0.00" (clean-currency "asdc"))
-      "Letters are invalid currency.")
-  (is (= "0.00" (clean-currency "12d23"))
-      "Letters are invalid currency."))
+  (testing "Letters get stripped."
+    (is (= "0.00" (clean-currency "asdc")))
+    (is (= "1,223.00" (clean-currency "12d23")))))
 
 (deftest clear-specials-test
   (is (= "RaceHub" (clear-specials "Race Hub"))

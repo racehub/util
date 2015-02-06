@@ -306,9 +306,9 @@ fraction. Negative numbers return false."
   allowed. All invalid amounts become $0.00. Commas allowed."
   [s :- s/Str]
   (let [s (#+cljs gstring/format #+clj format "%.2f"(format-currency s))]
-    (if (valid-currency-amt? s)
-      s
-      (currency-amt
+    (currency-amt
+     (if (valid-currency-amt? s)
+       s
        (zero-or-positive (str-to-double s))))))
 
 (s/defn pennies->double :- (s/maybe s/Num)

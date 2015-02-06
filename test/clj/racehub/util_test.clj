@@ -99,9 +99,8 @@
       "large ints are printed in a sexy way."))
 
 (deftest currency-amt-test
-  (s/without-fn-validation
-   (is (= "0.00" (currency-amt nil))
-       "Nil handling works."))
+  (is (= "0.00" (currency-amt nil))
+     "Nil handling works.")
   (is (= "0.00" (currency-amt "asdf"))
       "Busted strings parse to 0.")
   (is (= "12.43" (currency-amt 12.43))

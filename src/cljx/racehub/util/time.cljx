@@ -37,6 +37,18 @@
      (some (fn [regex] (re-find regex s))
            valid-calendar-formats))))
 
+(def MaxUnixTime
+  "Integer/MAX_VALUE (not defined in javascript)"
+  2147483647)
+
+(s/defn valid-unix-time? :- s/Bool
+  "Returns true if the given UnixTime is valid-- ie, between 0 and the
+  maximum possible Integer value."
+  [n :- UnixTime]
+  (and (integer? n)
+       (pos? n)
+       (< n MaxUnixTime)))
+
 (s/defn timestamp :- s/Str
   "Returns the current timestamp, formatted using the supplied
   formatter. Call `(clj-time.format/show-formatters) to see all

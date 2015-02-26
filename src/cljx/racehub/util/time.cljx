@@ -1,7 +1,7 @@
 (ns racehub.util.time
   (:require [#+clj clj-time.core #+cljs cljs-time.core :as time]
             [#+clj clj-time.format #+cljs cljs-time.format :as format]
-            #+cljs [cljs-time.coerce :as coerce]
+            [#+clj clj-time.coerce #+cljs cljs-time.coerce :as coerce]
             [clojure.string :as string]
             [racehub.schema :as ps]
             #+clj [racehub.util.config :as conf]
@@ -153,6 +153,16 @@
   (time/in-minutes
    (time/interval (time/epoch)
                   (timestamp-to-datetime ts))))
+
+(s/defn unix-time :- UnixTime
+  "Returns the current UnixTime"
+  []
+  (int (/ (coerce/to-long (now)) 1000)))
+
+(s/defn unix-time->datetime
+  "Returns the DateTime object for the given UnixTime (seconds since epoch)."
+  [n :- UnixTime]
+  (coerce/from-long (* n 1000)))
 
 #+clj
 (s/defn calendar-str-to-unix-time :- UnixTime

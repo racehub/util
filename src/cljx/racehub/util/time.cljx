@@ -348,7 +348,7 @@
     [unix-time-secs :- UnixTime]
     (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
 
-  (s/defn calendar-str->unix :- (s/maybe time/UnixTime)
+  (s/defn calendar-str->unix :- (s/maybe UnixTime)
     "Takes in a mm/dd/yyyy and returns the corresponding unix time."
     [s :- s/Str]
     (->> s

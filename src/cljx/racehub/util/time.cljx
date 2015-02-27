@@ -1,7 +1,7 @@
 (ns racehub.util.time
   (:require [#+clj clj-time.core #+cljs cljs-time.core :as time]
             [#+clj clj-time.format #+cljs cljs-time.format :as format]
-            #+cljs [cljs-time.coerce :as coerce]
+            [#+clj clj-time.coerce #+cljs cljs-time.coerce :as coerce]
             [clojure.string :as string]
             [racehub.schema :as ps]
             #+clj [racehub.util.config :as conf]
@@ -20,7 +20,7 @@
 (def PST "America/Los_Angeles")
 
 (s/def UnixTime
-  (s/named s/Int "Instant in time defined as the number of seconds
+  (s/named s/Int "Instant in time defined as the number of ms
   since midnight UTC Jan 1 1970."))
 
 (def valid-calendar-formats
@@ -36,6 +36,11 @@
    (when s
      (some (fn [regex] (re-find regex s))
            valid-calendar-formats))))
+
+(s/defn valid-unix-time? :- s/Bool
+  "Returns true if the given UnixTime is valid."
+  [n :- UnixTime]
+  (and (integer? n) (pos? n)))
 
 (s/defn timestamp :- s/Str
   "Returns the current timestamp, formatted using the supplied
@@ -154,14 +159,24 @@
    (time/interval (time/epoch)
                   (timestamp-to-datetime ts))))
 
+(s/defn unix-time :- UnixTime
+  "Returns the current UnixTime"
+  []
+  (coerce/to-long (now)))
+
+(s/defn unix-time->datetime
+  "Returns the DateTime object for the given UnixTime (ms since epoch)."
+  [n :- UnixTime]
+  (coerce/from-long n))
+
 #+clj
 (s/defn calendar-str-to-unix-time :- UnixTime
-  "Returns the seconds from the UNIX epoch (UTC) to the given
+  "Returns the ms from the UNIX epoch (UTC) to the given
   mm/dd/yyyy in the given time zone; thus describing an instant in
   time."
   [s :- s/Str
    tz :- TimeZone]
-  (time/in-seconds
+  (time/in-millis
    (time/interval (time/epoch)
                   (calendar-str-to-date-time-obj s tz))))
 
@@ -227,8 +242,8 @@
   timezone is supplied, uses the configuration default."
     ([] (zoned-now (default-timezone)))
     ([tz :- TimeZone]
-       (let [zone ^DateTimeZone (time/time-zone-for-id tz)]
-         (DateTime. zone))))
+     (let [zone ^DateTimeZone (time/time-zone-for-id tz)]
+       (DateTime. zone))))
 
   (s/defn zoned :- DateTime
     [dt :- DateTime
@@ -243,11 +258,11 @@
   (defn build-formatter
     [{:keys [timezone military longform]}]
     (cond
-     (and military timezone) "MM/dd/yyyy HH:mm:ss Z"
-     military "MM/dd/yyyy HH:mm:ss"
-     timezone "MM/dd/yyyy hh:mm:ss aa Z"
-     longform "MMM d yyyy hh:mm:ss aa z"
-     :default "MM/dd/yyyy hh:mm:ss aa"))
+      (and military timezone) "MM/dd/yyyy HH:mm:ss Z"
+      military "MM/dd/yyyy HH:mm:ss"
+      timezone "MM/dd/yyyy hh:mm:ss aa Z"
+      longform "MMM d yyyy hh:mm:ss aa z"
+      :default "MM/dd/yyyy hh:mm:ss aa"))
 
   (s/defn datetime-to-display-str :- s/Str
     [datetime :- DateTime
@@ -273,11 +288,11 @@
     (timestamp-to-display-str s :format "MMM d, yyyy"))
 
   (defn format-timestamp
-  "Takes in a timestamp, and returns a nicely formatted
+    "Takes in a timestamp, and returns a nicely formatted
   string. ."
-  [ts & {:as opts}]
-  (format/unparse (format/formatter (build-formatter opts))
-                  (timestamp-to-datetime ts)))
+    [ts & {:as opts}]
+    (format/unparse (format/formatter (build-formatter opts))
+                    (timestamp-to-datetime ts)))
 
   (s/defn midnight :- DateMidnight
     "Returns the midnight representing the BEGINNING of the DateTime."
@@ -302,16 +317,16 @@
          (finally (DateTimeUtils/setCurrentMillisSystem))))
 
   (defmacro with-time
-  "Executes the body with the supplied time mocked. So, calls to (now)
+    "Executes the body with the supplied time mocked. So, calls to (now)
   will return that time."
-  [t & body]
-  `(with-time* ~t (fn [] ~@body)))
+    [t & body]
+    `(with-time* ~t (fn [] ~@body)))
 
   (defn month-name
-  "Takes in a date object and returns the month name."
-  [date-obj]
-  (format/unparse (format/formatter "MMM")
-                  date-obj)))
+    "Takes in a date object and returns the month name."
+    [date-obj]
+    (format/unparse (format/formatter "MMM")
+                    date-obj)))
 
 #+cljs
 (do
@@ -322,20 +337,27 @@
   (def default-date-format "MMM dd, yyyy")
 
   (s/defn js-date-from-unix :- JSDate
-    "Takes in the number of seconds since last epoch and converts it
-    to a DateTime in the UTC Time Zone."
+    "Takes in the number of ms since last epoch and converts it to a
+    DateTime in the UTC Time Zone."
     [unix-time-secs :- UnixTime]
-    (coerce/from-long (* 1000 unix-time-secs)))
+    (coerce/from-long unix-time-secs))
 
   (s/defn local-js-date-from-unix :- JSDate
-    "Takes in the number of seconds since last epoch and converts it
-    to a DateTime in the browser's local time zone."
+    "Takes in the number of ms since last epoch and converts it to a
+    DateTime in the browser's local time zone."
     [unix-time-secs :- UnixTime]
     (time/to-default-time-zone (js-date-from-unix unix-time-secs)))
 
+  (s/defn calendar-str->unix :- (s/maybe time/UnixTime)
+    "Takes in a mm/dd/yyyy and returns the corresponding unix time."
+    [s :- s/Str]
+    (->> s
+         (format/parse (format/formatter "MM/dd/yyyy"))
+         (coerce/to-long)))
+
   (extend-protocol time/DateTimeProtocol
     number
-    ;;UnixTime (seconds since epoch), converted to LOCAL time (not UTC)
+    ;;UnixTime (ms since epoch), converted to LOCAL time (not UTC)
     (year [this] (time/year (local-js-date-from-unix this)))
     (month [this] (time/month (local-js-date-from-unix this)))
     (day [this] (time/day (local-js-date-from-unix this)))

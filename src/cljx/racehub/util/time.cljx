@@ -37,17 +37,10 @@
      (some (fn [regex] (re-find regex s))
            valid-calendar-formats))))
 
-(def MaxUnixTime
-  "Integer/MAX_VALUE (not defined in javascript)"
-  2147483647)
-
 (s/defn valid-unix-time? :- s/Bool
-  "Returns true if the given UnixTime is valid-- ie, between 0 and the
-  maximum possible Integer value."
+  "Returns true if the given UnixTime is valid."
   [n :- UnixTime]
-  (and (integer? n)
-       (pos? n)
-       (< n MaxUnixTime)))
+  (and (integer? n) (pos? n)))
 
 (s/defn timestamp :- s/Str
   "Returns the current timestamp, formatted using the supplied
@@ -169,7 +162,7 @@
 (s/defn unix-time :- UnixTime
   "Returns the current UnixTime"
   []
-  (/ (coerce/to-long (now))))
+  (coerce/to-long (now)))
 
 (s/defn unix-time->datetime
   "Returns the DateTime object for the given UnixTime (ms since epoch)."
@@ -183,7 +176,7 @@
   time."
   [s :- s/Str
    tz :- TimeZone]
-  (time/in-msecs
+  (time/in-millis
    (time/interval (time/epoch)
                   (calendar-str-to-date-time-obj s tz))))
 
@@ -358,10 +351,9 @@
   (s/defn calendar-str->unix :- (s/maybe time/UnixTime)
     "Takes in a mm/dd/yyyy and returns the corresponding unix time."
     [s :- s/Str]
-    (when-let [res (->> s
-                        (format/parse (format/formatter "MM/dd/yyyy"))
-                        (coerce/to-long))]
-      (/ res 1000)))
+    (->> s
+         (format/parse (format/formatter "MM/dd/yyyy"))
+         (coerce/to-long)))
 
   (extend-protocol time/DateTimeProtocol
     number

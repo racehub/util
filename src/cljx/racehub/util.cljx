@@ -56,6 +56,8 @@
        (remove (fn [[k v]] (pred v)))
        (into {})))
 
+(def remove-nils (partial remove-values nil?))
+
 (defn select-non-empty
   "Takes in a map and a sequence of keys - returns a subset of the map
   with the given sequence of keys that are present and have non-empty

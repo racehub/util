@@ -8,7 +8,10 @@
     (with-time mocked-time
       (is (= (time/now) mocked-time)
           "Mocking the time causes the mocked time to be
-          returned."))))
+          returned."))
+    (with-time mocked-time
+      (is (= (unix-time->datetime (unix-time)) (time/now))
+          "Unix Time conversions"))))
 
 (deftest midnight-test
   (let [now (time/now)]

@@ -281,6 +281,11 @@
                        {:keys (seq ids)})
       []))
 
+  (s/defn get-bulk-by-type :- {s/Str [CouchDoc]}
+    "Returns a map of document type to sequence of returned docs."
+    [ids :- [ID]]
+    (group-by :type (map :doc (get-bulk (set ids)))))
+
   (s/defn bulk-update :- [UpdateResult]
     "Takes in a collection of maps; if a doc contains :_id and :_rev,
   that doc gets updated. If not, a new doc's created."

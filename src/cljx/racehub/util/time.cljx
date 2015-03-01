@@ -355,6 +355,23 @@
          (format/parse (format/formatter "MM/dd/yyyy"))
          (coerce/to-long)))
 
+  (s/defn unix->calendar-str :- s/Str
+    "Converts the given UnixTime to a string of format mm/dd/yyyy."
+    [unix-time :- UnixTime]
+    (format/unparse (format/formatter "MM/dd/yyyy")
+                    (local-js-date-from-unix unix-time)))
+
+  (s/defn to-display-str :- s/Str
+    "Formats the given JSDate into our default formatted display str."
+    [date :- JSDate]
+    (format/unparse (format/formatter default-date-format) date))
+
+  (s/defn unix->display-str :- s/Str
+    "Converts the given UnixTime to a string like 'May 13, 2015.'"
+    [unix-time :- UnixTime]
+    (to-display-str
+     (local-js-date-from-unix unix-time)))
+
   (extend-protocol time/DateTimeProtocol
     number
     ;;UnixTime (ms since epoch), converted to LOCAL time (not UTC)
@@ -372,11 +389,6 @@
                                        (local-js-date-from-unix that)))
     (plus- [this period] ((time/period-fn period) + (local-js-date-from-unix this)))
     (minus- [this period] ((time/period-fn period) - (local-js-date-from-unix this))))
-
-  (s/defn to-display-str :- s/Str
-    "Formats the given JSDate into our default formatted display str."
-    [date :- JSDate]
-    (format/unparse (format/formatter default-date-format) date))
 
   (s/defn in-future? :- s/Bool
     "Is the given date afer the current client time? Converts the

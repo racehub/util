@@ -227,6 +227,8 @@
 (deftest replace-index-test
   (is (= ["a" "new" "c"] (replace-index 1 "new" ["a" "b" "c"]))
       "Replaces indexes correctly.")
+  (is (= ["a" "new" "c"] (replace-index 1 "new" '("a" "b" "c")))
+      "Works on lists too.")
   (is (= ["new" "b" "c"] (replace-index 0 "new" ["a" "b" "c"]))
       "Replaces indexes at the beginning.")
   (is (= ["a" "b" "new"] (replace-index 2 "new" ["a" "b" "c"]))

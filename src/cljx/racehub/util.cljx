@@ -158,7 +158,8 @@
 (s/defn replace-index :- [s/Any]
   "Replaces the item at the given index of the collection with the new
   item. If an index is smaller then 0, appends to the beginning - if
-  the index is greater than the (dec count), it'll append to the end."
+  the index is greater than the (dec count), it'll append to the
+  end. Works on vectors and lists."
   [index :- s/Any
    new-item :- s/Any
    coll :- [s/Any]]

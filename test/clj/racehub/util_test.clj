@@ -223,3 +223,17 @@
     (is (= (build-kw-map d) {:d {:foo "bar" :big {:dawg "33"}}}))
     (is (= (build-kw-map b f) {:b 23 :f :yomama}))
     (is (= (build-kw-map a b c e) {:a "Hi" :b 23 :c ["A" 43] :e #{:hi :there}}))))
+
+(deftest replace-index-test
+  (is (= ["a" "new" "c"] (replace-index 1 "new" ["a" "b" "c"]))
+      "Replaces indexes correctly.")
+  (is (= ["a" "new" "c"] (replace-index 1 "new" '("a" "b" "c")))
+      "Works on lists too.")
+  (is (= ["new" "b" "c"] (replace-index 0 "new" ["a" "b" "c"]))
+      "Replaces indexes at the beginning.")
+  (is (= ["a" "b" "new"] (replace-index 2 "new" ["a" "b" "c"]))
+      "Replaces indexes at the end")
+  (is (= ["new" "a" "b" "c"] (replace-index -1 "new" '("a" "b" "c")))
+      "Negative indices get prepended, for lists only.")
+  (is (= ["a" "b" "c" "new"] (replace-index 3 "new" '("a" "b" "c")))
+      "Indices (>= (count coll)) get appended, for lists only."))

@@ -180,7 +180,8 @@
                ;; just say you're already authenticated. Otherwise
                ;; kill it and redirect.
                (-> (redirect-to-provider! config req)
-                   (append-redirect (ring/referrer req))
+                   (append-redirect (or (-> req :params :redirect not-empty)
+                                        (ring/referrer req)))
                    (l/ring-response))))
 
 ;; ## Token Requests

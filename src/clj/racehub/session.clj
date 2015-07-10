@@ -48,7 +48,6 @@
 (defn try-redis []
   (let [spec (redis-config)]
     (try (when (ping spec)
-
            spec)
          (catch Exception e
            (log/error e "Couldn't connect to Redis!")))))
@@ -56,7 +55,8 @@
 (defn setup-redis-store
   "Returns a local or remote redis store. Defaults to local. Add an
   empty string as the first arg to have NO persistence. Defaults to
-  \"900 1\"."
+  \"900 1\" So Redis will automatically dump the dataset to disk every
+  15 mins if at least 1 key changed. See http://redis.io/topics/persistence"
   ([] (setup-redis-store "900 1"))
   ([save-string]
    (log/info "Setting up Redis.")

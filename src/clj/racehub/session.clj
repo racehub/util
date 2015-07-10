@@ -47,13 +47,18 @@
 
 (defn try-redis []
   (let [spec (redis-config)]
-    (try (when (ping spec) spec)
+    (try (when (ping spec)
+
+           spec)
          (catch Exception e
            (log/error e "Couldn't connect to Redis!")))))
 
 (defn setup-redis-store
   "Returns a local or remote redis store. Defaults to local."
-  []
-  (log/info "Setting up Redis.")
-  (when-let [redis (try-redis)]
-    (redis-store redis (session-config))))
+  ([] (setup-redis-store ""))
+  ([save-string]
+   (log/info "Setting up Redis.")
+   (when-let [redis (try-redis)]
+     (when (not-empty save-string)
+       (car/wcar (redis-config) (car/config-set "save" save-string)))
+     (redis-store redis (session-config)))))

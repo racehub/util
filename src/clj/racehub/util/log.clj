@@ -84,7 +84,7 @@
   `(do ~@(map (fn [level]
                 (let [level (symbol (name level))]
                   `(def-logger ~level)))
-              log/levels-ordered)))
+              [:trace :debug :info :warn :error :fatal :report])))
 
 ;; ## API
 ;;

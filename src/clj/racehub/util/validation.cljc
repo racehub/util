@@ -3,7 +3,7 @@
   (:require [racehub.util :as u]
             [schema.core :as s :include-macros true]
             [validateur.validation :as v]
-            #+clj [forms-bootstrap.validation :as fbv]))
+            #?(:clj [forms-bootstrap.validation :as fbv])))
 
 ;; ## Schema
 
@@ -112,16 +112,16 @@
    (v/validate-by :year #(and (number? %) (> % 1899) (< % 2014))
                   :message "Birthdate year must be a valid number.")))
 
-#+clj
-(defn new->old
-  "Accepts the results of a validation-set in the new style and
+#?(:clj
+   (defn new->old
+     "Accepts the results of a validation-set in the new style and
   returns an old-style validator that uses forms-bootstrap."
-  [validator]
-  (fn [m]
-    (if-let [errors (not-empty (validator m))]
-      (reduce (fn [acc [k v]]
-                (fbv/add-validation-error acc k v))
-              m
-              (for [[k vs] errors, v vs]
-                [k v]))
-      m)))
+     [validator]
+     (fn [m]
+       (if-let [errors (not-empty (validator m))]
+         (reduce (fn [acc [k v]]
+                   (fbv/add-validation-error acc k v))
+                 m
+                 (for [[k vs] errors, v vs]
+                   [k v]))
+         m))))

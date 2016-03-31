@@ -473,46 +473,45 @@ fraction. Negative numbers return false."
            seed)))))
 
 
-#?@(:cljs
-    (do
-      (defn to-clj
-        "Parses a javascript item with proper keywords."
-        [item]
-        (js->clj item :keywordize-keys true))
+#?(:cljs
+   (do (defn to-clj
+         "Parses a javascript item with proper keywords."
+         [item]
+         (js->clj item :keywordize-keys true))
 
-      (defn print-object [o]
-        (println (goog.debug/deepExpose o)))
+       (defn print-object [o]
+         (println (goog.debug/deepExpose o)))
 
-      (defn log [& strings]
-        (.log js/console (apply str strings)))
+       (defn log [& strings]
+         (.log js/console (apply str strings)))
 
-      (s/defn read :- (s/maybe s/Any)
-        [s :- (s/maybe s/Str)]
-        (when (not-empty s)
-          (cljs.reader/read-string s)))
+       (s/defn read :- (s/maybe s/Any)
+         [s :- (s/maybe s/Str)]
+         (when (not-empty s)
+           (cljs.reader/read-string s)))
 
-      (defn ^:export now
-        "Returns the current UTC time (since epoch) in ms."
-        []
-        (js/Date.now))
+       (defn ^:export now
+         "Returns the current UTC time (since epoch) in ms."
+         []
+         (js/Date.now))
 
-      (defn ^:export get-target-attr
-        "Takes in an HTML DOM event, and returns the value of the given
+       (defn ^:export get-target-attr
+         "Takes in an HTML DOM event, and returns the value of the given
      attribute for the event's target element. Useful for listeners."
-        [event attr]
-        (-> (.-selectedTarget event)
-            (.-attributes)
-            (.getNamedItem attr)
-            (.-value)))
+         [event attr]
+         (-> (.-selectedTarget event)
+             (.-attributes)
+             (.getNamedItem attr)
+             (.-value)))
 
-      (defn ^:export get-target-value
-        "Takes in an HTML DOM event, and returns the value of the event's
+       (defn ^:export get-target-value
+         "Takes in an HTML DOM event, and returns the value of the event's
   target element. Useful for listeners."
-        [event]
-        (.-value (.-selectedTarget event)))
+         [event]
+         (.-value (.-selectedTarget event)))
 
-      (defn local-time-str
-        "Takes in a timestamp in ms, and returns locale time str (ie
+       (defn local-time-str
+         "Takes in a timestamp in ms, and returns locale time str (ie
     1:02:23 PM)"
-        [ms]
-        (.toLocaleTimeString (js/Date. ms)))))
+         [ms]
+         (.toLocaleTimeString (js/Date. ms)))))

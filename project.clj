@@ -32,10 +32,9 @@
                  [crypto-random "1.2.0"]
                  [environ "0.5.0"]
                  [http-kit "2.1.19"]
-                 [liberator "0.13"]
+                 [liberator "0.12.2"]
                  [lib-noir "0.8.4" :exclusions [ring/ring]]
                  [lock-key "1.0.0"]]
-  :exclusions [org.clojure/tools.trace]
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
   :source-paths ["src/clj"]
   :profiles {:dev {:injections [(require 'schema.core)

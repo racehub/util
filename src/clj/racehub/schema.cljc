@@ -2,12 +2,13 @@
   "Common schema elements."
   (:require [racehub.util :as u]
             [schema.core :as s :include-macros true])
-  #+clj (:import [clojure.core.async.impl.protocols ReadPort]))
+  #?(:clj
+     (:import [clojure.core.async.impl.protocols ReadPort])))
 
 (def Channel
   "core.async channel."
-  #+cljs s/Any
-  #+clj ReadPort)
+  #?(:cljs s/Any
+     :clj ReadPort))
 
 (def UnixTimestamp
   (s/named s/Int "Unix timestamp. Seconds since epoch."))

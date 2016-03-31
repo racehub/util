@@ -1,13 +1,12 @@
 (ns racehub.util.location
   "Geonames API wrappers."
-  (:require [schema.core :as s :include-macros true])
-  #+clj
-  (:require [clojure.core.async :as a]
-            [racehub.schema :as ps]
-            [racehub.util :as u]
-            [racehub.util.config :as conf]
-            [geonames.geocoder :as geo]
-            [schema.core :as s]))
+  (:require [schema.core :as s :include-macros true]
+            #?@(:clj [[clojure.core.async :as a]
+                      [racehub.schema :as ps]
+                      [racehub.util :as u]
+                      [racehub.util.config :as conf]
+                      [geonames.geocoder :as geo]
+                      [schema.core :as s]])))
 
 (s/defschema Reference
   (s/named s/Str "Unique reference for this place in Google's Places
@@ -52,35 +51,35 @@
    (s/optional-key :address) Address
    (s/optional-key :timezone) Timezone})
 
-#+clj
-(do
-  (comment
-    "Example overage message:"
-    {:status
-     {:message "the hourly limit of 2000 credits for demo has
+#?(:clj
+   (do
+     (comment
+       "Example overage message:"
+       {:status
+        {:message "the hourly limit of 2000 credits for demo has
   been exceeded. Please use an application specific account. Do not
   use the demo account for your application."
-      :value 19}})
+         :value 19}})
 
-  (s/defn get-point :- Point
-    [loc :- Location]
-    (-> loc :position (select-keys [:latitude :longitude])))
+     (s/defn get-point :- Point
+       [loc :- Location]
+       (-> loc :position (select-keys [:latitude :longitude])))
 
-  (s/defn timezone :- ps/Channel
-    [loc :- Location]
-    (geo/with-key (conf/env :geonames-key)
-      (->> (geo/timezone (get-point loc))
-           (a/map< :timezoneId))))
+     (s/defn timezone :- ps/Channel
+       [loc :- Location]
+       (geo/with-key (conf/env :geonames-key)
+         (->> (geo/timezone (get-point loc))
+              (a/map< :timezoneId))))
 
-  (s/defn assoc-timezone
-    "Updates the supplied location by adding in the timezone with a call
+     (s/defn assoc-timezone
+       "Updates the supplied location by adding in the timezone with a call
    to the Geonames API. Takes an optional timeout. If the timeout
    fails, the functions returns the unchanged location."
-    ([loc :- Location]
-       (if-let [tz (a/<!! (timezone loc))]
-         (assoc loc :timezone tz)
-         loc))
-    ([loc :- Location millis :- ps/Millis]
-       (if-let [tz (first (a/alts!! [(timezone loc) (a/timeout millis)]))]
-         (assoc loc :timezone tz)
-         loc))))
+       ([loc :- Location]
+        (if-let [tz (a/<!! (timezone loc))]
+          (assoc loc :timezone tz)
+          loc))
+       ([loc :- Location millis :- ps/Millis]
+        (if-let [tz (first (a/alts!! [(timezone loc) (a/timeout millis)]))]
+          (assoc loc :timezone tz)
+          loc)))))

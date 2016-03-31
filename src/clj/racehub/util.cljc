@@ -1,18 +1,22 @@
 (ns racehub.util
-  (:require [clojure.string :as st]
-            #+cljs [cljs.reader]
-            #+cljs [cljs.core.async :refer [chan]]
-            #+clj [clojure.core.async :refer [chan]]
-            [schema.core :as s :include-macros true]
-            #+clj [cemerick.url :as url]
-            #+cljs goog.debug
-            #+cljs [goog.string :as gstring]
-            #+cljs [goog.string.format :as gformat])
-  #+clj (:import [java.net URI]
-                 [com.google.i18n.phonenumbers NumberParseException PhoneNumberUtil]
-                 [clojure.lang ArraySeq Symbol]
-                 [java.util List UUID]
-                 [java.security SecureRandom]))
+  (:require
+   #?@(:clj [[cemerick.url :as url]
+             [clojure.string :as st]
+             [clojure.core.async :refer [chan]]
+             [schema.core :as s :include-macros true]]
+       :cljs [[clojure.string :as st]
+              [cljs.reader]
+              [cljs.core.async :refer [chan]]
+              [schema.core :as s :include-macros true]
+              goog.debug
+              [goog.string :as gstring]
+              [goog.string.format :as gformat]]))
+  #?(:clj
+     (:import [java.net URI]
+              [com.google.i18n.phonenumbers NumberParseException PhoneNumberUtil]
+              [clojure.lang ArraySeq Symbol]
+              [java.util List UUID]
+              [java.security SecureRandom])))
 
 (defn with-chan [f]
   (let [output (chan)]
@@ -218,39 +222,39 @@ items)]"
 (s/defn ^:export str-to-int :- s/Int
   "converts string to ints, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
-  #+cljs (if (js/isNaN s)
-           0
-           (js/parseInt s))
-  #+clj (if (number? s)
-          (int s)
-          (try (Integer/parseInt s)
-               (catch Exception e 0))))
+  #?(:cljs (if (js/isNaN s)
+             0
+             (js/parseInt s))
+     :clj (if (number? s)
+            (int s)
+            (try (Integer/parseInt s)
+                 (catch Exception e 0)))))
 
 (s/defn ^:export str-to-float :- s/Num
   "converts string to float, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
-  #+cljs (if (js/isNaN s)
-           0
-           (js/parseFloat s))
-  #+clj (if (number? s)
-          (float s)
-          (if (number-string? s)
-            (try (Float/parseFloat s)
-                 (catch Exception e 0.0))
-            0.0)))
+  #?(:cljs (if (js/isNaN s)
+             0
+             (js/parseFloat s))
+     :clj (if (number? s)
+            (float s)
+            (if (number-string? s)
+              (try (Float/parseFloat s)
+                   (catch Exception e 0.0))
+              0.0))))
 
 (s/defn ^:export str-to-double :- s/Num
   "converts string to doubles, returns 0 for exceptions."
   [s :- (s/maybe (s/either s/Str s/Num))]
-  #+cljs (if (js/isNaN s)
-           0
-           (js/parseFloat s))
-  #+clj (if (number? s)
-          (double s)
-          (if (number-string? s)
-            (try (Double/parseDouble s)
-                 (catch Exception e 0.0))
-            0.0)))
+  #?(:cljs (if (js/isNaN s)
+             0
+             (js/parseFloat s))
+     :clj (if (number? s)
+            (double s)
+            (if (number-string? s)
+              (try (Double/parseDouble s)
+                   (catch Exception e 0.0))
+              0.0))))
 
 (defn pretty-int
   "Takes in an int or a str, adds commas where appropriate, returns a
@@ -269,8 +273,10 @@ items)]"
   (let [[s ms] (div-mod millis 1000)
         [min s] (div-mod s 60)
         [hr min] (div-mod min 60)]
-    (#+cljs gstring/format #+clj format "%02d:%02d:%02d.%02d" hr min s
-            (int (#+cljs Math.floor #+clj Math/floor (/ ms 10))))))
+    #?(:cljs (gstring/format "%02d:%02d:%02d.%02d" hr min s
+                             (int (Math.floor (/ ms 10))))
+       :clj (format "%02d:%02d:%02d.%02d" hr min s
+                    (int (Math/floor (/ ms 10)))))))
 
 (defn ^:export time-to-ms [time]
   (let [parsed (vec (map str-to-int
@@ -294,7 +300,8 @@ items)]"
 (s/defn ^:export currency-amt :- s/Str
   [n :- (s/maybe (s/either s/Str s/Num))]
   (let [num (format-currency n)
-        nocommas (#+clj format #+cljs gstring/format "%.2f" num)
+        nocommas #?(:cljs (gstring/format "%.2f" num)
+                    :clj (format "%.2f" num))
         whole-decimal-vec (st/split nocommas #"\.")
         whole-num-str (pretty-int (first whole-decimal-vec))]
     (str whole-num-str "." (second whole-decimal-vec))))
@@ -321,7 +328,8 @@ fraction. Negative numbers return false."
   amount. Truncates to two decimal points. Negative amounts not
   allowed. All invalid amounts become $0.00. Commas allowed."
   [s :- s/Str]
-  (let [s (#+cljs gstring/format #+clj format "%.2f"(format-currency s))]
+  (let [s #?(:cljs (gstring/format "%.2f"(format-currency s))
+             :clj (format "%.2f"(format-currency s)))]
     (currency-amt
      (if (valid-currency-amt? s)
        s
@@ -356,151 +364,155 @@ fraction. Negative numbers return false."
 
 (defn collectify [obj]
   (cond (nil? obj) []
-        (or (sequential? obj) #+clj (instance? List obj) (set? obj)) obj
+        (or (sequential? obj)
+            #?(:clj (instance? List obj))
+            (set? obj))
+        obj
         :else [obj]))
 
-#+clj
-(do
-  (s/defn uuid :- s/Str
-    []
-    (str (UUID/randomUUID)))
+#?(:clj
+   (do
+     (s/defn uuid :- s/Str
+       []
+       (str (UUID/randomUUID)))
 
-  (s/defn ->int :- (s/maybe s/Int)
-    [i :- s/Str]
-    (try (Integer/parseInt i)
-         (catch Exception _)))
+     (s/defn ->int :- (s/maybe s/Int)
+       [i :- s/Str]
+       (try (Integer/parseInt i)
+            (catch Exception _)))
 
-  (s/defn national-phone-number :- (s/maybe s/Int)
-    "Takes in a phone number string, which doesnt have to be all
+     (s/defn national-phone-number :- (s/maybe s/Int)
+       "Takes in a phone number string, which doesnt have to be all
   numbers, and returns a long of the phone number using Google's
   libphonenumber (or nil if the phone number was invalid."
-    [phone :- (s/maybe s/Str)]
-    (try (-> (PhoneNumberUtil/getInstance)
-             (.parse phone "US")
-             .getNationalNumber)
-         (catch NumberParseException _)))
+       [phone :- (s/maybe s/Str)]
+       (try (-> (PhoneNumberUtil/getInstance)
+                (.parse phone "US")
+                .getNationalNumber)
+            (catch NumberParseException _)))
 
-  (defn ensure-defaults [m & k-default-pairs]
-    {:pre [(even? (count k-default-pairs))]}
-    (reduce (fn [m [k default]]
-              (update-in m (collectify k)
-                         (fn [v]
-                           (if (coll? v)
-                             (or (not-empty v) default)
-                             (or v default)))))
-            m
-            (partition 2 k-default-pairs)))
+     (defn ensure-defaults [m & k-default-pairs]
+       {:pre [(even? (count k-default-pairs))]}
+       (reduce (fn [m [k default]]
+                 (update-in m (collectify k)
+                            (fn [v]
+                              (if (coll? v)
+                                (or (not-empty v) default)
+                                (or v default)))))
+               m
+               (partition 2 k-default-pairs)))
 
-  (s/defn index-of :- (s/maybe s/Int)
-    [v :- ArraySeq entry :- s/Any]
-    (let[idx (.indexOf v entry)]
-      (when (not= idx -1)
-        idx)))
+     (s/defn index-of :- (s/maybe s/Int)
+       [v :- ArraySeq entry :- s/Any]
+       (let[idx (.indexOf v entry)]
+         (when (not= idx -1)
+           idx)))
 
-  (s/defn try-require :- nil
-    [sym :- Symbol]
-    (try (require sym)
-         (catch Throwable _
-           (println "Namespace not available in current mode!" sym))))
+     (s/defn try-require :- nil
+       [sym :- Symbol]
+       (try (require sym)
+            (catch Throwable _
+              (println "Namespace not available in current mode!" sym))))
 
-  (defmacro maybe-resolve [ns method]
-    `(when-let [n# (find-ns (quote ~ns))]
-       (when-let [m# (ns-resolve n# (quote ~method))]
-         @m#)))
+     (defmacro maybe-resolve [ns method]
+       `(when-let [n# (find-ns (quote ~ns))]
+          (when-let [m# (ns-resolve n# (quote ~method))]
+            @m#)))
 
-  (s/defn valid-int? :- s/Bool
-    [n :- s/Any]
-    (or (integer? n)
-        (boolean (try (Integer/parseInt n)
-                      (catch Exception e nil)))))
+     (s/defn valid-int? :- s/Bool
+       [n :- s/Any]
+       (or (integer? n)
+           (boolean (try (Integer/parseInt n)
+                         (catch Exception e nil)))))
 
-  (s/defn encode :- s/Str
-    "Encodes the string in UTF-8 url format"
-    [s :- s/Str]
-    (url/url-encode s))
+     (s/defn encode :- s/Str
+       "Encodes the string in UTF-8 url format"
+       [s :- s/Str]
+       (url/url-encode s))
 
-  (s/defn decode :- s/Str
-    "Decodes the string in UTF-8 url format"
-    [s :- s/Str]
-    (url/url-decode s))
+     (s/defn decode :- s/Str
+       "Decodes the string in UTF-8 url format"
+       [s :- s/Str]
+       (url/url-decode s))
 
-  (s/defn remove-leading-zeroes :- s/Str
-    "Removes all leading zeroes. If the string contains only zeroes, returns 0."
-    [s :- s/Str]
-    (.replaceFirst s "^0+(?!$)" ""))
+     (s/defn remove-leading-zeroes :- s/Str
+       "Removes all leading zeroes. If the string contains only zeroes, returns 0."
+       [s :- s/Str]
+       (.replaceFirst s "^0+(?!$)" ""))
 
-  (s/defn capitalize-first-only :- s/Str
-    "Like string/capitalize but doesnt force the rest of the string to
+     (s/defn capitalize-first-only :- s/Str
+       "Like string/capitalize but doesnt force the rest of the string to
   lower case. Useful in cases like hyphenated last names so we dont
   force to second part to lowercase."
-    [s :- s/Str]
-    (str (.toUpperCase (subs s 0 1))
-         (subs s 1 )))
+       [s :- s/Str]
+       (str (.toUpperCase (subs s 0 1))
+            (subs s 1 )))
 
-  (s/defn currency-str->pennies :- (s/maybe s/Int)
-    [price :- (s/maybe s/Str)]
-    (when price
-      (double->pennies
-       (format-currency price))))
+     (s/defn currency-str->pennies :- (s/maybe s/Int)
+       [price :- (s/maybe s/Str)]
+       (when price
+         (double->pennies
+          (format-currency price))))
 
-  (s/defn hexadecimalize :- s/Str
-    "Converts byte array to hex string"
-    [a-byte-array]
-    (->> (map #(format "%02X" %) a-byte-array)
-         (apply str)
-         (st/lower-case)))
+     (s/defn hexadecimalize :- s/Str
+       "Converts byte array to hex string"
+       [a-byte-array]
+       (->> (map #(format "%02X" %) a-byte-array)
+            (apply str)
+            (st/lower-case)))
 
-  (defn generate-secure-token
-    "email authentication stuff (from noir-auth-app)"
-    [size & {:keys [hex?]}]
-    ;; http://clojuredocs.org/clojure_core/clojure.core/byte-array
-    (let [seed (byte-array size)]
-      ;; http://docs.oracle.com/javase/6/docs/api/java/security/SecureRandom.html
-      (.nextBytes (SecureRandom/getInstance "SHA1PRNG") seed)
-      (if hex?
-        (hexadecimalize seed)
-        seed))))
+     (defn generate-secure-token
+       "email authentication stuff (from noir-auth-app)"
+       [size & {:keys [hex?]}]
+       ;; http://clojuredocs.org/clojure_core/clojure.core/byte-array
+       (let [seed (byte-array size)]
+         ;; http://docs.oracle.com/javase/6/docs/api/java/security/SecureRandom.html
+         (.nextBytes (SecureRandom/getInstance "SHA1PRNG") seed)
+         (if hex?
+           (hexadecimalize seed)
+           seed)))))
 
-#+cljs
-(do
-  (defn to-clj
-    "Parses a javascript item with proper keywords."
-    [item]
-    (js->clj item :keywordize-keys true))
 
-  (defn print-object [o]
-    (println (goog.debug/deepExpose o)))
+#?@(:cljs
+    (do
+      (defn to-clj
+        "Parses a javascript item with proper keywords."
+        [item]
+        (js->clj item :keywordize-keys true))
 
-  (defn log [& strings]
-    (.log js/console (apply str strings)))
+      (defn print-object [o]
+        (println (goog.debug/deepExpose o)))
 
-  (s/defn read :- (s/maybe s/Any)
-    [s :- (s/maybe s/Str)]
-    (when (not-empty s)
-      (cljs.reader/read-string s)))
+      (defn log [& strings]
+        (.log js/console (apply str strings)))
 
-  (defn ^:export now
-    "Returns the current UTC time (since epoch) in ms."
-    []
-    (js/Date.now))
+      (s/defn read :- (s/maybe s/Any)
+        [s :- (s/maybe s/Str)]
+        (when (not-empty s)
+          (cljs.reader/read-string s)))
 
-  (defn ^:export get-target-attr
-    "Takes in an HTML DOM event, and returns the value of the given
+      (defn ^:export now
+        "Returns the current UTC time (since epoch) in ms."
+        []
+        (js/Date.now))
+
+      (defn ^:export get-target-attr
+        "Takes in an HTML DOM event, and returns the value of the given
      attribute for the event's target element. Useful for listeners."
-    [event attr]
-    (-> (.-selectedTarget event)
-        (.-attributes)
-        (.getNamedItem attr)
-        (.-value)))
+        [event attr]
+        (-> (.-selectedTarget event)
+            (.-attributes)
+            (.getNamedItem attr)
+            (.-value)))
 
-  (defn ^:export get-target-value
-    "Takes in an HTML DOM event, and returns the value of the event's
+      (defn ^:export get-target-value
+        "Takes in an HTML DOM event, and returns the value of the event's
   target element. Useful for listeners."
-    [event]
-    (.-value (.-selectedTarget event)))
+        [event]
+        (.-value (.-selectedTarget event)))
 
-  (defn local-time-str
-    "Takes in a timestamp in ms, and returns locale time str (ie
+      (defn local-time-str
+        "Takes in a timestamp in ms, and returns locale time str (ie
     1:02:23 PM)"
-    [ms]
-    (.toLocaleTimeString (js/Date. ms))))
+        [ms]
+        (.toLocaleTimeString (js/Date. ms)))))

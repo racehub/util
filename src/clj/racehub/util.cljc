@@ -307,8 +307,15 @@ items)]"
     (str whole-num-str "." (second whole-decimal-vec))))
 
 (s/defn ^:export to-currency :- s/Str
-  [n :- (s/maybe (s/either s/Str s/Num))]
-  (str "$" (currency-amt n)))
+  [n :- (s/maybe (s/either s/Str s/Num))
+   & currency]
+  (let [currency (st/lower-case (or (first currency)
+                                    "usd"))
+        sym {"usd" "$"
+             "gbp" "£"
+             "eur" "€"}]
+    (str (get sym currency "$")
+         (currency-amt n))))
 
 (s/defn ^:export valid-currency-amt? :- s/Bool
   "Returns true if the given string is a valid currency amount (cents
@@ -344,11 +351,16 @@ fraction. Negative numbers return false."
 (s/defn pennies->currency :- (s/maybe s/Str)
   "converts the incoming pennies into a currency string with a
     dollar sign prefix on the front."
-  [pennies :- (s/maybe s/Int)]
-  (when pennies
-    (if (neg? pennies)
-      (str "-" (to-currency (pennies->double (- pennies))))
-      (to-currency (pennies->double pennies)))))
+  [pennies :- (s/maybe s/Int)
+   & currency]
+  (let [currency (or (first currency)
+                     "usd")]
+    (when pennies
+      (if (neg? pennies)
+        (str "-" (to-currency (pennies->double (- pennies))
+                              currency))
+        (to-currency (pennies->double pennies)
+                     currency)))))
 
 (s/defn pennies->currency-str :- (s/maybe s/Str)
   "converts the incoming pennies into a currency string WITHOUT a

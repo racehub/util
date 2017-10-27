@@ -175,6 +175,12 @@
   [n :- UnixTime]
   (coerce/from-long n))
 
+(s/defn unix-time->timestamp
+  "n should be msecs since epoch."
+  [n :- UnixTime]
+  (format/unparse (format/formatters :basic-date-time-no-ms)
+                  (unix-time->datetime n)))
+
 #?(:clj
    (s/defn calendar-str-to-unix-time :- UnixTime
      "Returns the ms from the UNIX epoch (UTC) to the given

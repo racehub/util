@@ -64,7 +64,8 @@
   "Return value of the supplied authorization function. Useful if you
   want to provide a custom failure message."
   (s/either {:ok (s/pred true?)
-             :user s/Any}
+             :user {:identity (s/named s/Str "User ID")
+                    :roles [(s/named s/Str "User Role")]}}
             {:ok (s/pred false?)
              (s/optional-key :reason) s/Str}))
 
